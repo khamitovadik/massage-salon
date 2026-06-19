@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: massage-salon
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/massage_salon
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: false
+
+server:
+  port: 8081
+
+app:
+  jwt:
+    secret: p2C4qLvZXdnauoFoAUL/Uv69q4fMA1PxEo3gAf8ME9E=
+    expiration-ms: 86400000   # 24 часа
+
+  telegram:
+    bot-token: "8793892295:AAFFgcOKMCwTToNSlHhKFai-cnR1WEhlf9w"
+    owner-chat-id: "978503826"
+
+logging:
+  level:
+    com.salon: DEBUG
+    org.springframework.security: INFO

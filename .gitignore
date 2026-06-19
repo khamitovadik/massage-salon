@@ -1,0 +1,23 @@
+# Maven
+target/
+*.jar
+*.war
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# Env / secrets
+application-local.yml
+*.env
+
+# OS
+.DS_Store
+Thumbs.db
