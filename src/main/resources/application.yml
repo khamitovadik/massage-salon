@@ -3,25 +3,24 @@ spring:
     name: massage-salon
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/massage_salon
-    username: postgres
-    password: postgres
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/massage_salon}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
     enabled: false
 
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 app:
   jwt:
