@@ -10,6 +10,7 @@ const NAV = [
   { to: '/schedule', label: '🗓️ Расписание' },
   { to: '/reviews', label: '⭐ Отзывы' },
   { to: '/employees', label: '👥 Сотрудники', adminOnly: true },
+  { to: '/users', label: '👤 Пользователи', adminOnly: true },
   { to: '/analytics', label: '📊 Аналитика', adminOnly: true },
   { to: '/broadcast', label: '📢 Рассылка', adminOnly: true },
   { to: '/settings', label: '⚙️ Настройки', adminOnly: true },
