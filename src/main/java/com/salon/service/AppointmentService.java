@@ -146,4 +146,27 @@ public class AppointmentService {
         return appointmentRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Запись не найдена: " + id));
     }
+
+    /**
+     * 📊 Получить все записи за период (для графика)
+     */
+    public List<AppointmentResponse> getAppointmentsBetween(LocalDateTime from, LocalDateTime to) {
+        log.info("Получение всех записей за период с {} по {}", from, to);
+        return appointmentRepository.findAllInRange(from, to)
+            .stream()
+            .map(AppointmentResponse::from)
+            .toList();
+    }
+
+    /**
+     * 📊 Получить записи конкретного сотрудника за период (для графика)
+     */
+    public List<AppointmentResponse> getEmployeeAppointmentsBetween(
+            Long employeeId, LocalDateTime from, LocalDateTime to) {
+        log.info("Получение записей сотрудника {} за период с {} по {}", employeeId, from, to);
+        return appointmentRepository.findAllInRange(from, to).stream()
+            .filter(a -> a.getEmployee().getId().equals(employeeId))
+            .map(AppointmentResponse::from)
+            .toList();
+    }
 }

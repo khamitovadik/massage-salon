@@ -41,6 +41,17 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
         @Param("to") LocalDateTime to
     );
 
+    /** 📊 ДЛЯ ГРАФИКА: ВСЕ записи в период времени (для отображения на календаре) */
+    @Query("""
+        SELECT a FROM Appointment a
+        WHERE a.startTime >= :from AND a.startTime <= :to
+        ORDER BY a.startTime ASC
+    """)
+    List<Appointment> findAllInRange(
+        @Param("from") LocalDateTime from,
+        @Param("to") LocalDateTime to
+    );
+
     // === Аналитика ===
 
     /** Кол-во и выручка по статусам за период */

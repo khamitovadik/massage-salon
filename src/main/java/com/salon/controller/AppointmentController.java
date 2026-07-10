@@ -91,4 +91,30 @@ public class AppointmentController {
             Authentication auth) {
         return ResponseEntity.ok(appointmentService.cancel(id, auth.getName()));
     }
+
+    /**
+     * 📊 ГРАФИК: Все записи за период (для отображения на календаре/графике)
+     * GET /api/appointments/graph/all?from=2026-07-01T00:00:00&to=2026-07-31T23:59:59
+     * Возвращает ВСЕ записи за период — для админа
+     */
+    @GetMapping("/graph/all")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<List<AppointmentResponse>> graphAll(
+            @RequestParam java.time.LocalDateTime from,
+            @RequestParam java.time.LocalDateTime to) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsBetween(from, to));
+    }
+
+    /**
+     * 📊 ГРАФИК: Записи сотрудника за период
+     * GET /api/appointments/graph/employee/{employeeId}?from=2026-07-01T00:00:00&to=2026-07-31T23:59:59
+     */
+    @GetMapping("/graph/employee/{employeeId}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
+    public ResponseEntity<List<AppointmentResponse>> graphEmployee(
+            @PathVariable Long employeeId,
+            @RequestParam java.time.LocalDateTime from,
+            @RequestParam java.time.LocalDateTime to) {
+        return ResponseEntity.ok(appointmentService.getEmployeeAppointmentsBetween(employeeId, from, to));
+    }
 }
