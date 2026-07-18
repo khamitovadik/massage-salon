@@ -68,7 +68,7 @@ public class UserController {
      * GET /api/users
      */
     @GetMapping
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
         List<Map<String, Object>> users = userRepository.findAll().stream()
             .map(u -> Map.<String, Object>of(
@@ -88,7 +88,7 @@ public class UserController {
      * Body: {"role": "EMPLOYEE"}
      */
     @PatchMapping("/{id}/role")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<Map<String, String>> updateRole(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {

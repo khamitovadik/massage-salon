@@ -23,4 +23,8 @@ public class CreateAppointmentRequest {
     // Для ADMIN/OWNER: можно записать другого клиента
     // Если null — записывается сам авторизованный пользователь
     private Long clientId;
+
+    // Если нужно использовать абонемент при создании записи
+    // Если не null — при подтверждении записи будет списан сеанс
+    private Long subscriptionId;
 }

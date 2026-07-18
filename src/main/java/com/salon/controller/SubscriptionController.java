@@ -2,6 +2,7 @@ package com.salon.controller;
 
 import com.salon.dto.request.CreateSubscriptionRequest;
 import com.salon.dto.response.SubscriptionResponse;
+import com.salon.entity.SubscriptionStatus;
 import com.salon.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,38 @@ public class SubscriptionController {
     @GetMapping("/{id}")
     public ResponseEntity<SubscriptionResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(subscriptionService.getById(id));
+    }
+
+    /**
+     * ✅ Получить все абонементы в статусе PENDING (ожидают подтверждения) — ADMIN/OWNER.
+     * GET /api/subscriptions/pending
+     */
+    @GetMapping("/pending")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<List<SubscriptionResponse>> getPending() {
+        return ResponseEntity.ok(subscriptionService.getByStatus(SubscriptionStatus.PENDING));
+    }
+
+    /**
+     * ✅ Одобрить абонемент (PENDING → ACTIVE) — ADMIN/OWNER.
+     * PATCH /api/subscriptions/{id}/approve
+     */
+    @PatchMapping("/{id}/approve")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<SubscriptionResponse> approve(@PathVariable Long id) {
+        return ResponseEntity.ok(subscriptionService.approve(id));
+    }
+
+    /**
+     * ❌ Отклонить абонемент (PENDING → CANCELLED) — ADMIN/OWNER.
+     * PATCH /api/subscriptions/{id}/reject?reason=...
+     */
+    @PatchMapping("/{id}/reject")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<SubscriptionResponse> reject(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(subscriptionService.reject(id, reason));
     }
 
     /**

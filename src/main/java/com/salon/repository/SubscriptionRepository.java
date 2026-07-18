@@ -18,6 +18,8 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     List<Subscription> findAllByOrderByCreatedAtDesc();
 
+    List<Subscription> findAllByStatusOrderByCreatedAtDesc(SubscriptionStatus status);
+
     /** Найти активный абонемент клиента на конкретную услугу с оставшимися сеансами */
     @Query("""
         SELECT s FROM Subscription s

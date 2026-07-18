@@ -6,11 +6,13 @@ import com.salon.entity.AppointmentStatus;
 import com.salon.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -48,6 +50,18 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<List<AppointmentResponse>> getAll() {
         return ResponseEntity.ok(appointmentService.getAll());
+    }
+
+    /**
+     * ✅ Все записи с фильтром по датам (для админ-панели)
+     * GET /api/appointments/filter?dateFrom=2026-07-01&dateTo=2026-07-31
+     */
+    @GetMapping("/filter")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<List<AppointmentResponse>> filterByDate(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDateRange(dateFrom, dateTo));
     }
 
     /**
@@ -106,6 +120,19 @@ public class AppointmentController {
     }
 
     /**
+     * ✅ ГРАФИК: Только ПОДТВЕРЖДЕННЫЕ записи для админа за период
+     * GET /api/appointments/schedule/all?from=...&to=...
+     * Это для расписания - показывает только CONFIRMED и COMPLETED записи
+     */
+    @GetMapping("/schedule/all")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<List<AppointmentResponse>> scheduleAll(
+            @RequestParam java.time.LocalDateTime from,
+            @RequestParam java.time.LocalDateTime to) {
+        return ResponseEntity.ok(appointmentService.getConfirmedAppointmentsBetween(from, to));
+    }
+
+    /**
      * 📊 ГРАФИК: Записи сотрудника за период
      * GET /api/appointments/graph/employee/{employeeId}?from=2026-07-01T00:00:00&to=2026-07-31T23:59:59
      */
@@ -116,5 +143,18 @@ public class AppointmentController {
             @RequestParam java.time.LocalDateTime from,
             @RequestParam java.time.LocalDateTime to) {
         return ResponseEntity.ok(appointmentService.getEmployeeAppointmentsBetween(employeeId, from, to));
+    }
+
+    /**
+     * ✅ ГРАФИК: Только ПОДТВЕРЖДЕННЫЕ записи сотрудника за период (для расписания)
+     * GET /api/appointments/schedule/employee/{employeeId}?from=...&to=...
+     */
+    @GetMapping("/schedule/employee/{employeeId}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
+    public ResponseEntity<List<AppointmentResponse>> scheduleEmployee(
+            @PathVariable Long employeeId,
+            @RequestParam java.time.LocalDateTime from,
+            @RequestParam java.time.LocalDateTime to) {
+        return ResponseEntity.ok(appointmentService.getConfirmedEmployeeAppointmentsBetween(employeeId, from, to));
     }
 }

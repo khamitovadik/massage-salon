@@ -60,8 +60,10 @@ public class SubscriptionService {
             .startDate(req.getStartDate())
             .expiryDate(req.getExpiryDate())
             .notes(req.getNotes())
+            .status(SubscriptionStatus.PENDING)  // ✅ НОВОЕ: создаётся с PENDING
             .build();
 
+        log.info("Абонемент создан с PENDING для клиента {}. Ждёт подтверждения администратора", client.getEmail());
         return SubscriptionResponse.from(subscriptionRepository.save(subscription));
     }
 
@@ -97,6 +99,12 @@ public class SubscriptionService {
     /** Один абонемент по id */
     public SubscriptionResponse getById(Long id) {
         return SubscriptionResponse.from(findOrThrow(id));
+    }
+
+    /** Получить абонементы по статусу (для админа — видеть PENDING запросы) */
+    public List<SubscriptionResponse> getByStatus(SubscriptionStatus status) {
+        return subscriptionRepository.findAllByStatusOrderByCreatedAtDesc(status)
+            .stream().map(SubscriptionResponse::from).toList();
     }
 
     /**
@@ -137,6 +145,37 @@ public class SubscriptionService {
             sub.setStatus(SubscriptionStatus.EXHAUSTED);
         }
 
+        return SubscriptionResponse.from(subscriptionRepository.save(sub));
+    }
+
+    /** ✅ Одобрить абонемент (ADMIN/OWNER) — меняет PENDING на ACTIVE */
+    @Transactional
+    public SubscriptionResponse approve(Long id) {
+        Subscription sub = findOrThrow(id);
+
+        if (sub.getStatus() != SubscriptionStatus.PENDING) {
+            throw new RuntimeException("Абонемент не ожидает подтверждения. Текущий статус: " + sub.getStatus());
+        }
+
+        sub.setStatus(SubscriptionStatus.ACTIVE);
+        log.info("Абонемент {} одобрен администратором. Клиент: {}", sub.getId(), sub.getClient().getEmail());
+        return SubscriptionResponse.from(subscriptionRepository.save(sub));
+    }
+
+    /** ❌ Отклонить абонемент (ADMIN/OWNER) — меняет PENDING на CANCELLED */
+    @Transactional
+    public SubscriptionResponse reject(Long id, String reason) {
+        Subscription sub = findOrThrow(id);
+
+        if (sub.getStatus() != SubscriptionStatus.PENDING) {
+            throw new RuntimeException("Можно отклонить только ожидающие подтверждения абонементы");
+        }
+
+        sub.setStatus(SubscriptionStatus.CANCELLED);
+        if (reason != null) {
+            sub.setNotes((sub.getNotes() != null ? sub.getNotes() + " | " : "") + "Отклонено: " + reason);
+        }
+        log.info("Абонемент {} отклонен администратором. Причина: {}", sub.getId(), reason);
         return SubscriptionResponse.from(subscriptionRepository.save(sub));
     }
 

@@ -33,6 +33,11 @@ public class Appointment {
     @JoinColumn(name = "service_id", nullable = false)
     private SalonService service;
 
+    // Абонемент (если запись использует абонемент)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id")
+    private Subscription subscription;
+
     // Дата и время начала
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

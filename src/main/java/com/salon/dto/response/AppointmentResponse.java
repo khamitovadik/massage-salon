@@ -32,6 +32,10 @@ public class AppointmentResponse {
     private String comment;
     private LocalDateTime createdAt;
 
+    // ✅ НОВОЕ: информация об абонементе если запись использует абонемент
+    private Long subscriptionId;
+    private String subscriptionStatus;
+
     public static AppointmentResponse from(Appointment a) {
         return AppointmentResponse.builder()
             .id(a.getId())
@@ -50,6 +54,9 @@ public class AppointmentResponse {
             .status(a.getStatus())
             .comment(a.getComment())
             .createdAt(a.getCreatedAt())
+            // ✅ НОВОЕ: добавить информацию об абонементе
+            .subscriptionId(a.getSubscription() != null ? a.getSubscription().getId() : null)
+            .subscriptionStatus(a.getSubscription() != null ? a.getSubscription().getStatus().toString() : null)
             .build();
     }
 }
