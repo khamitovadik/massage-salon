@@ -27,7 +27,7 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>📊 Аналитика</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Аналитика</h1>
 
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>

@@ -43,7 +43,7 @@ export default function UsersPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>👤 Пользователи</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Пользователи</h1>
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>

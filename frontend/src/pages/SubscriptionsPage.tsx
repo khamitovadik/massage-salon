@@ -78,7 +78,7 @@ export default function SubscriptionsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">🎫 Абонементы</h1>
+        <h1 className="page-title">Абонементы</h1>
         {admin && (
           <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
             {showForm ? 'Отмена' : '+ Выдать абонемент'}

@@ -54,7 +54,7 @@ export default function ServicesPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">💆 Услуги</h1>
+        <h1 className="page-title">Услуги</h1>
         {admin && (
           <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
             {showForm ? 'Отмена' : '+ Добавить услугу'}

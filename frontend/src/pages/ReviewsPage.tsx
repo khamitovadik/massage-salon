@@ -46,7 +46,7 @@ export default function ReviewsPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>⭐ Отзывы</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Отзывы</h1>
 
       {/* Форма отзыва */}
       <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>

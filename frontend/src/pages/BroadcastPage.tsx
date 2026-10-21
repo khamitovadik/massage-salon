@@ -18,7 +18,7 @@ export default function BroadcastPage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 8 }}>📢 Рассылка</h1>
+      <h1 className="page-title" style={{ marginBottom: 8 }}>Рассылка</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>
         Отправить сообщение всем клиентам у которых привязан Telegram.
       </p>

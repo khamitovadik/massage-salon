@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import { Check, Clock, Lightbulb, MapPin, Phone, Store } from 'lucide-react'
 import api from '../api/client'
+import Logo from '../components/Logo'
 
 interface SalonSettings {
   name: string
@@ -11,87 +14,140 @@ interface SalonSettings {
   workingHoursEnd: string
 }
 
+const EMPTY: SalonSettings = {
+  name: '', address: '', phone: '', email: '',
+  description: '', workingHoursStart: '09:00', workingHoursEnd: '21:00'
+}
+
 export default function SettingsPage() {
-  const [form, setForm] = useState<SalonSettings>({
-    name: '', address: '', phone: '', email: '',
-    description: '', workingHoursStart: '09:00', workingHoursEnd: '21:00'
-  })
+  const [form, setForm] = useState<SalonSettings>(EMPTY)
+  const [saved, setSaved] = useState<SalonSettings>(EMPTY)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [msg, setMsg] = useState('')
 
   useEffect(() => {
     api.get('/settings')
-      .then(r => setForm(r.data))
+      .then(r => { setForm(r.data); setSaved(r.data) })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
   function save() {
     setSaving(true)
-    setMsg('')
     api.put('/settings', form)
-      .then(() => setMsg('✅ Настройки сохранены'))
-      .catch(() => setMsg('❌ Ошибка при сохранении'))
+      .then(() => { setSaved(form); toast.success('Настройки сохранены') })
+      .catch(() => toast.error('Не удалось сохранить настройки'))
       .finally(() => setSaving(false))
   }
 
-  function field(label: string, key: keyof SalonSettings, type = 'text') {
-    return (
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>{label}</label>
-        {key === 'description' ? (
-          <textarea
-            className="input"
-            rows={3}
-            value={form[key]}
-            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-            style={{ width: '100%', resize: 'vertical' }}
-          />
-        ) : (
-          <input
-            type={type}
-            className="input"
-            value={form[key]}
-            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-            style={{ width: '100%', maxWidth: 400 }}
-          />
-        )}
-      </div>
-    )
-  }
+  const set = (key: keyof SalonSettings) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm(p => ({ ...p, [key]: e.target.value }))
 
-  if (loading) return <div className="text-muted">Загрузка...</div>
+  const dirty = JSON.stringify(form) !== JSON.stringify(saved)
+  const hours = saved.workingHoursStart && saved.workingHoursEnd
+    ? `${saved.workingHoursStart.slice(0, 5)} – ${saved.workingHoursEnd.slice(0, 5)}`
+    : ''
+
+  if (loading) return <div className="spinner" />
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>⚙️ Настройки салона</h1>
+      <div style={{ marginBottom: 24 }}>
+        <h1 className="page-title">Настройки</h1>
+        <p className="page-subtitle">Информация о вашем салоне, контакты и часы работы.</p>
+      </div>
 
-      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 24, maxWidth: 600 }}>
-        {field('Название салона', 'name')}
-        {field('Адрес', 'address')}
-        {field('Телефон', 'phone', 'tel')}
-        {field('Email', 'email', 'email')}
-        {field('Описание', 'description')}
-
-        <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Открытие</label>
-            <input type="time" className="input" value={form.workingHoursStart}
-              onChange={e => setForm(p => ({ ...p, workingHoursStart: e.target.value }))} style={{ width: '100%' }} />
+      <div className="settings-grid">
+        <div className="card" style={{ padding: 0 }}>
+          <div className="settings-head">
+            <span className="icon-tile"><Store size={18} /></span>
+            <div>
+              <h2 className="section-title">Основная информация</h2>
+              <p className="text-muted text-sm">Эти данные используются в работе вашего салона.</p>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontWeight: 600, marginBottom: 6 }}>Закрытие</label>
-            <input type="time" className="input" value={form.workingHoursEnd}
-              onChange={e => setForm(p => ({ ...p, workingHoursEnd: e.target.value }))} style={{ width: '100%' }} />
+
+          <div className="settings-body">
+            <div className="field">
+              <label className="label">Название салона</label>
+              <input className="input" value={form.name} onChange={set('name')} placeholder="Em.Del.Relaxx" />
+            </div>
+            <div className="field">
+              <label className="label">Адрес</label>
+              <div className="input-icon">
+                <input className="input" value={form.address} onChange={set('address')} placeholder="Укажите адрес салона" />
+                <MapPin size={16} />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label className="label">Телефон</label>
+                <input className="input" type="tel" value={form.phone} onChange={set('phone')} placeholder="+7 (___) ___-__-__" />
+              </div>
+              <div className="field">
+                <label className="label">Email</label>
+                <input className="input" type="email" value={form.email} onChange={set('email')} placeholder="example@mail.ru" />
+              </div>
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label className="label">Описание</label>
+              <textarea className="input" rows={3} value={form.description} onChange={set('description')}
+                placeholder="Расскажите о вашем салоне" style={{ resize: 'vertical' }} />
+            </div>
+          </div>
+
+          <div className="settings-body" style={{ borderTop: '1px solid var(--border)' }}>
+            <h3 className="subsection-title"><Clock size={16} color="var(--brand)" /> Часы работы</h3>
+            <div className="field-row">
+              <div className="field">
+                <label className="label">Открытие</label>
+                <input type="time" className="input" value={form.workingHoursStart} onChange={set('workingHoursStart')} />
+              </div>
+              <div className="field">
+                <label className="label">Закрытие</label>
+                <input type="time" className="input" value={form.workingHoursEnd} onChange={set('workingHoursEnd')} />
+              </div>
+            </div>
+            <p className="text-muted" style={{ fontSize: 12 }}>Укажите время начала и окончания рабочего дня салона.</p>
+          </div>
+
+          <div className="settings-foot">
+            <span className="text-muted" style={{ fontSize: 12 }}>
+              {dirty ? 'Есть несохранённые изменения' : 'Изменения применятся после сохранения'}
+            </span>
+            <div className="flex gap-2">
+              <button className="btn btn-ghost" onClick={() => setForm(saved)} disabled={!dirty || saving}>Отмена</button>
+              <button className="btn btn-primary" onClick={save} disabled={saving}>
+                <Check size={16} /> {saving ? 'Сохранение...' : 'Сохранить'}
+              </button>
+            </div>
           </div>
         </div>
 
-        {msg && <div style={{ marginBottom: 12, color: msg.startsWith('✅') ? '#22c55e' : '#ef4444' }}>{msg}</div>}
+        <div className="flex flex-col gap-4">
+          <div className="card">
+            <div className="text-sm" style={{ fontWeight: 600, marginBottom: 16 }}>Ваш салон</div>
+            <div className="text-center" style={{ paddingBottom: 16, borderBottom: '1px solid var(--border)' }}>
+              <div style={{ display: 'inline-block', marginBottom: 12 }}><Logo size={56} variant="soft" /></div>
+              <div style={{ fontWeight: 600, fontSize: 16 }}>{saved.name || 'Em.Del.Relaxx'}</div>
+              <div className="text-muted" style={{ fontSize: 12, marginTop: 2 }}>
+                {saved.description || 'Массаж и забота о себе'}
+              </div>
+            </div>
+            <ul className="salon-facts">
+              <li><MapPin size={15} />{saved.address || 'Адрес не указан'}</li>
+              <li><Phone size={15} />{saved.phone || 'Телефон не указан'}</li>
+              <li><Clock size={15} />{hours || 'Часы работы не указаны'}</li>
+            </ul>
+          </div>
 
-        <button className="btn btn-primary" onClick={save} disabled={saving}>
-          {saving ? 'Сохранение...' : 'Сохранить'}
-        </button>
+          <div className="tip-card">
+            <div className="tip-title"><Lightbulb size={16} /> Начните с главного</div>
+            <p>Добавьте адрес и контакты, чтобы вся важная информация о салоне была под рукой у администратора.</p>
+            <p className="tip-note">Не забудьте сохранить изменения перед выходом из настроек.</p>
+          </div>
+        </div>
       </div>
     </div>
   )

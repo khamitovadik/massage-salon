@@ -58,7 +58,7 @@ export default function EmployeesPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">👥 Сотрудники</h1>
+        <h1 className="page-title">Сотрудники</h1>
         <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
           {showForm ? 'Отмена' : '+ Добавить сотрудника'}
         </button>

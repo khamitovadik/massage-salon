@@ -40,7 +40,7 @@ export default function SchedulePage() {
 
   return (
     <div>
-      <h1 style={{ marginBottom: 24 }}>🗓️ Расписание сотрудников</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Расписание сотрудников</h1>
 
       {employees.length === 0 ? (
         <div className="text-muted">Сотрудники не найдены.</div>

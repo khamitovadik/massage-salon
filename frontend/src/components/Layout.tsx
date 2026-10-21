@@ -1,25 +1,60 @@
-import { useState } from 'react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Bell, CalendarClock, CalendarDays, ChartLine, ChevronDown, ChevronRight, ChevronsUpDown,
+  CircleHelp, ContactRound, Home, LogOut, Menu, Send, SlidersHorizontal, Sparkles, Star,
+  Ticket, Users, X, type LucideIcon,
+} from 'lucide-react'
 import { clearAuth, getAuth, isAdmin } from '../store/auth'
+import type { Role } from '../types'
+import Logo from './Logo'
 
-const NAV = [
-  { to: '/', label: '🏠 Главная', exact: true },
-  { to: '/appointments', label: '📅 Записи' },
-  { to: '/subscriptions', label: '🎫 Абонементы' },
-  { to: '/services', label: '💆 Услуги' },
-  { to: '/schedule', label: '🗓️ Расписание' },
-  { to: '/reviews', label: '⭐ Отзывы' },
-  { to: '/employees', label: '👥 Сотрудники', adminOnly: true },
-  { to: '/users', label: '👤 Пользователи', adminOnly: true },
-  { to: '/analytics', label: '📊 Аналитика', adminOnly: true },
-  { to: '/broadcast', label: '📢 Рассылка', adminOnly: true },
-  { to: '/settings', label: '⚙️ Настройки', adminOnly: true },
+interface NavItem { to: string; label: string; icon: LucideIcon; exact?: boolean; adminOnly?: boolean }
+
+const NAV: NavItem[] = [
+  { to: '/', label: 'Главная', icon: Home, exact: true },
+  { to: '/appointments', label: 'Записи', icon: CalendarDays },
+  { to: '/subscriptions', label: 'Абонементы', icon: Ticket },
+  { to: '/services', label: 'Услуги', icon: Sparkles },
+  { to: '/schedule', label: 'Расписание', icon: CalendarClock },
+  { to: '/reviews', label: 'Отзывы', icon: Star },
+  { to: '/employees', label: 'Сотрудники', icon: Users, adminOnly: true },
+  { to: '/users', label: 'Пользователи', icon: ContactRound, adminOnly: true },
+  { to: '/analytics', label: 'Аналитика', icon: ChartLine, adminOnly: true },
+  { to: '/broadcast', label: 'Рассылка', icon: Send, adminOnly: true },
+  { to: '/settings', label: 'Настройки', icon: SlidersHorizontal, adminOnly: true },
 ]
+
+const ROLE_LABEL: Record<Role, string> = {
+  OWNER: 'Владелец салона',
+  ADMIN: 'Администратор',
+  EMPLOYEE: 'Сотрудник',
+  CLIENT: 'Клиент',
+}
+
+function initials(name?: string) {
+  if (!name) return '?'
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
+}
 
 export default function Layout() {
   const { user } = getAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  const [menu, setMenu] = useState<'top' | 'side' | null>(null)
+
+  useEffect(() => { setOpen(false); setMenu(null) }, [pathname])
+
+  useEffect(() => {
+    if (!menu) return
+    const close = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.user-menu-anchor')) setMenu(null)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [menu])
 
   function logout() {
     clearAuth()
@@ -27,93 +62,95 @@ export default function Layout() {
   }
 
   const navItems = NAV.filter(n => !n.adminOnly || isAdmin(user?.role))
+  const current = [...NAV].sort((a, b) => b.to.length - a.to.length)
+    .find(n => n.exact ? pathname === n.to : pathname.startsWith(n.to))
+  const roleLabel = user?.role ? ROLE_LABEL[user.role] : ''
 
-  const navStyle = ({ isActive }: { isActive: boolean }) => ({
-    display: 'block',
-    padding: '12px 20px',
-    color: isActive ? 'var(--brand)' : 'var(--text)',
-    background: isActive ? 'var(--brand-light)' : 'transparent',
-    fontWeight: isActive ? 600 : 400,
-    borderRight: isActive ? '3px solid var(--brand)' : '3px solid transparent',
-    textDecoration: 'none',
-    fontSize: 14,
-  })
-
-  const sidebar = (
-    <nav style={{
-      width: 220, background: '#fff', borderRight: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column', padding: '24px 0',
-      height: '100%',
-    }}>
-      <div style={{ padding: '0 20px 24px', fontWeight: 700, fontSize: 16, color: 'var(--brand)' }}>
-        💆 Салон массажа
+  const dropdown = (
+    <div className="user-menu">
+      <div className="user-menu-head">
+        <div className="user-menu-name">{user?.name}</div>
+        <div className="user-menu-email">{user?.email}</div>
       </div>
-
-      {navItems.map(n => (
-        <NavLink key={n.to} to={n.to} end={n.exact} style={navStyle} onClick={() => setOpen(false)}>
-          {n.label}
-        </NavLink>
-      ))}
-
-      <div style={{ marginTop: 'auto', padding: '16px 20px', borderTop: '1px solid var(--border)' }}>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 4 }}>{user?.name}</div>
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 12 }}>{user?.role}</div>
-        <button className="btn btn-ghost btn-sm w-full" onClick={logout}>Выйти</button>
-      </div>
-    </nav>
+      <button className="user-menu-item" onClick={logout}>
+        <LogOut size={16} /> Выйти
+      </button>
+    </div>
   )
 
   return (
-    <>
-      <style>{`
-        @media (max-width: 640px) {
-          .desktop-nav { display: none !important; }
-          .mobile-header { display: flex !important; }
-          .mobile-overlay { display: block !important; }
-        }
-        @media (min-width: 641px) {
-          .mobile-header { display: none !important; }
-          .mobile-overlay { display: none !important; }
-        }
-      `}</style>
+    <div className="app-shell">
+      {open && <div className="sidebar-backdrop" onClick={() => setOpen(false)} />}
 
-      {/* Мобильный хедер */}
-      <div className="mobile-header" style={{
-        display: 'none', alignItems: 'center', justifyContent: 'space-between',
-        padding: '12px 16px', background: '#fff', borderBottom: '1px solid var(--border)',
-        position: 'sticky', top: 0, zIndex: 100,
-      }}>
-        <span style={{ fontWeight: 700, color: 'var(--brand)', fontSize: 15 }}>💆 Салон массажа</span>
-        <button onClick={() => setOpen(o => !o)} style={{
-          background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', padding: 4
-        }}>
-          {open ? '✕' : '☰'}
-        </button>
-      </div>
-
-      {/* Мобильное меню — оверлей */}
-      {open && (
-        <div className="mobile-overlay" style={{
-          display: 'none', position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 200
-        }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 260, background: '#fff', boxShadow: '2px 0 12px rgba(0,0,0,0.15)' }}>
-            {sidebar}
+      <aside className={`sidebar${open ? ' is-open' : ''}`}>
+        <div className="sidebar-brand">
+          <Logo size={36} />
+          <div>
+            <div className="sidebar-brand-name">Em.Del.Relaxx</div>
+            <div className="sidebar-brand-sub">Управление салоном</div>
           </div>
-          <div onClick={() => setOpen(false)} style={{ position: 'absolute', top: 0, left: 260, right: 0, bottom: 0, background: 'rgba(0,0,0,0.4)' }} />
-        </div>
-      )}
-
-      <div style={{ display: 'flex', minHeight: '100vh' }}>
-        {/* Десктопная боковая панель */}
-        <div className="desktop-nav" style={{ flexShrink: 0 }}>
-          {sidebar}
+          <button className="icon-btn sidebar-close" onClick={() => setOpen(false)} aria-label="Закрыть меню">
+            <X size={18} />
+          </button>
         </div>
 
-        {/* Контент */}
-        <main style={{ flex: 1, padding: '24px', overflowY: 'auto', minWidth: 0 }}>
+        <div className="sidebar-section">Рабочее пространство</div>
+        <nav className="sidebar-nav">
+          {navItems.map(({ to, label, icon: Icon, exact }) => (
+            <NavLink key={to} to={to} end={exact} className="nav-item">
+              <Icon size={17} strokeWidth={1.75} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <button className="nav-item" onClick={() => toast('По вопросам работы системы обратитесь к администратору салона')}>
+            <CircleHelp size={17} strokeWidth={1.75} />
+            Помощь и поддержка
+          </button>
+          <div className="user-menu-anchor">
+            <button className="sidebar-user" onClick={() => setMenu(m => m === 'side' ? null : 'side')}>
+              <span className="avatar">{initials(user?.name)}</span>
+              <span className="sidebar-user-text">
+                <span className="sidebar-user-name">{user?.name}</span>
+                <span className="sidebar-user-role">{roleLabel}</span>
+              </span>
+              <ChevronsUpDown size={15} color="var(--text-muted)" />
+            </button>
+            {menu === 'side' && <div className="user-menu-pos-up">{dropdown}</div>}
+          </div>
+        </div>
+      </aside>
+
+      <div className="main-col">
+        <header className="topbar">
+          <button className="icon-btn burger" onClick={() => setOpen(true)} aria-label="Открыть меню">
+            <Menu size={20} />
+          </button>
+          <div className="breadcrumbs">
+            <span>Управление салоном</span>
+            <ChevronRight size={14} />
+            <span className="breadcrumbs-current">{current?.label ?? 'Главная'}</span>
+          </div>
+          <div className="topbar-right">
+            <button className="icon-btn" aria-label="Уведомления"><Bell size={18} strokeWidth={1.75} /></button>
+            <span className="topbar-divider" />
+            <div className="user-menu-anchor">
+              <button className="topbar-user" onClick={() => setMenu(m => m === 'top' ? null : 'top')}>
+                <span className="avatar">{initials(user?.name)}</span>
+                <span className="topbar-user-name">{roleLabel || user?.name}</span>
+                <ChevronDown size={15} color="var(--text-muted)" />
+              </button>
+              {menu === 'top' && <div className="user-menu-pos-down">{dropdown}</div>}
+            </div>
+          </div>
+        </header>
+
+        <main className="content">
           <Outlet />
         </main>
       </div>
-    </>
+    </div>
   )
 }

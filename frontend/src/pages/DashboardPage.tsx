@@ -25,7 +25,7 @@ export default function DashboardPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">👋 Привет, {user?.name}!</h1>
+        <h1 className="page-title">Привет, {user?.name}!</h1>
         <Link to="/appointments/new" className="btn btn-primary">+ Новая запись</Link>
       </div>
 

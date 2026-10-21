@@ -56,7 +56,7 @@ export default function NewAppointmentPage() {
   return (
     <div style={{ maxWidth: 520 }}>
       <div className="page-header">
-        <h1 className="page-title">+ Новая запись</h1>
+        <h1 className="page-title">Новая запись</h1>
       </div>
 
       <div className="card">

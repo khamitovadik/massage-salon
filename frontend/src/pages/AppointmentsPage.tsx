@@ -45,7 +45,7 @@ export default function AppointmentsPage() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">📅 Записи</h1>
+        <h1 className="page-title">Записи</h1>
         <Link to="/appointments/new" className="btn btn-primary">+ Новая запись</Link>
       </div>
 

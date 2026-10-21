@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { login } from '../api/auth'
 import { saveAuth } from '../store/auth'
+import Logo from '../components/Logo'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -26,12 +27,11 @@ export default function LoginPage() {
   return (
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: 'var(--bg)'
+      justifyContent: 'center', background: 'var(--bg)', padding: 16
     }}>
-      <div className="card" style={{ width: 360 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 8, color: 'var(--brand)' }}>
-          💆 Салон массажа
-        </h1>
+      <div className="card" style={{ width: 360, maxWidth: '100%', padding: 28 }}>
+        <Logo size={48} />
+        <h1 style={{ fontSize: 22, fontWeight: 600, margin: '16px 0 4px' }}>Em.Del.Relaxx</h1>
         <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Войдите в систему</p>
 
         <form onSubmit={handleSubmit}>
