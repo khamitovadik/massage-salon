@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Check, Clock, Lightbulb, MapPin, Phone, Store } from 'lucide-react'
+import { Check, Clock, Lightbulb, MapPin, Phone, Store, Ticket } from 'lucide-react'
 import api from '../api/client'
 import Logo from '../components/Logo'
 
@@ -12,11 +12,15 @@ interface SalonSettings {
   description: string
   workingHoursStart: string
   workingHoursEnd: string
+  annualPrice: string
+  annualSessions: string
+  annualDescription: string
 }
 
 const EMPTY: SalonSettings = {
   name: '', address: '', phone: '', email: '',
-  description: '', workingHoursStart: '09:00', workingHoursEnd: '21:00'
+  description: '', workingHoursStart: '09:00', workingHoursEnd: '21:00',
+  annualPrice: '', annualSessions: '', annualDescription: ''
 }
 
 export default function SettingsPage() {
@@ -27,7 +31,13 @@ export default function SettingsPage() {
 
   useEffect(() => {
     api.get('/settings')
-      .then(r => { setForm(r.data); setSaved(r.data) })
+      .then(r => {
+        const data = { ...EMPTY, ...r.data }
+        for (const key of ['annualPrice', 'annualSessions', 'annualDescription'] as const) {
+          data[key] = data[key] == null ? '' : String(data[key])
+        }
+        setForm(data); setSaved(data)
+      })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
@@ -110,6 +120,26 @@ export default function SettingsPage() {
               </div>
             </div>
             <p className="text-muted" style={{ fontSize: 12 }}>Укажите время начала и окончания рабочего дня салона.</p>
+          </div>
+
+          <div className="settings-body" style={{ borderTop: '1px solid var(--border)' }}>
+            <h3 className="subsection-title"><Ticket size={16} color="var(--brand)" /> Годовой абонемент</h3>
+            <div className="field-row">
+              <div className="field">
+                <label className="label">Стоимость, ₸</label>
+                <input type="number" min="0" className="input" value={form.annualPrice} onChange={set('annualPrice')} placeholder="Например, 300000" />
+              </div>
+              <div className="field">
+                <label className="label">Количество сеансов</label>
+                <input type="number" min="1" className="input" value={form.annualSessions} onChange={set('annualSessions')} placeholder="Например, 48" />
+              </div>
+            </div>
+            <div className="field" style={{ marginBottom: 0 }}>
+              <label className="label">Описание для клиентов</label>
+              <textarea className="input" rows={3} value={form.annualDescription} onChange={set('annualDescription')}
+                placeholder="Что входит, кому подходит, бонусы..." style={{ resize: 'vertical' }} />
+            </div>
+            <p className="text-muted" style={{ fontSize: 12, marginTop: 8 }}>Эти условия клиенты видят в разделе «Абонементы».</p>
           </div>
 
           <div className="settings-foot">

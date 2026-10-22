@@ -34,6 +34,8 @@ export function statusLabel(status: AppointmentStatus): string {
 
 export function subStatusBadge(status: SubscriptionStatus): string {
   switch (status) {
+    case 'PENDING': return 'badge-yellow'
+    case 'OFFERED': return 'badge-purple'
     case 'ACTIVE': return 'badge-green'
     case 'EXPIRED': return 'badge-yellow'
     case 'EXHAUSTED': return 'badge-gray'
@@ -44,6 +46,8 @@ export function subStatusBadge(status: SubscriptionStatus): string {
 
 export function subStatusLabel(status: SubscriptionStatus): string {
   switch (status) {
+    case 'PENDING': return 'Ждёт подтверждения'
+    case 'OFFERED': return 'Ждёт согласия клиента'
     case 'ACTIVE': return 'Активен'
     case 'EXPIRED': return 'Истёк'
     case 'EXHAUSTED': return 'Исчерпан'

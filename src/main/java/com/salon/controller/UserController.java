@@ -64,6 +64,24 @@ public class UserController {
     }
 
     /**
+     * Список клиентов — для записи клиента и выдачи абонемента персоналом.
+     * GET /api/users/clients
+     */
+    @GetMapping("/clients")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
+    public ResponseEntity<List<Map<String, Object>>> getClients() {
+        List<Map<String, Object>> clients = userRepository.findAll().stream()
+            .filter(u -> u.getRole() == Role.CLIENT && u.isActive())
+            .map(u -> Map.<String, Object>of(
+                "id", u.getId(),
+                "name", u.getName(),
+                "phone", u.getPhone() != null ? u.getPhone() : ""
+            ))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(clients);
+    }
+
+    /**
      * Список всех пользователей (только для OWNER).
      * GET /api/users
      */

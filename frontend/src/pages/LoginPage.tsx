@@ -65,6 +65,9 @@ export default function LoginPage() {
         <p style={{ marginTop: 16, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
           Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
         </p>
+        <p style={{ marginTop: 8, textAlign: 'center', fontSize: 13 }}>
+          <Link to="/welcome">← О салоне</Link>
+        </p>
       </div>
     </div>
   )

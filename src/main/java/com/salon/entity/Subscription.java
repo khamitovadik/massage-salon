@@ -3,6 +3,7 @@ package com.salon.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -47,6 +48,14 @@ public class Subscription {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private SubscriptionStatus status = SubscriptionStatus.ACTIVE;
+
+    /** Тип абонемента (null у старых записей — считается курсом) */
+    @Enumerated(EnumType.STRING)
+    private SubscriptionType type;
+
+    /** Стоимость абонемента */
+    @Column(precision = 12, scale = 2)
+    private BigDecimal price;
 
     @Column(columnDefinition = "TEXT")
     private String notes;

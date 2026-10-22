@@ -37,6 +37,13 @@ public class SalonSettingsService {
         if (fields.containsKey("instagramUrl")) s.setInstagramUrl(fields.get("instagramUrl"));
         if (fields.containsKey("workingHours")) s.setWorkingHours(fields.get("workingHours"));
         if (fields.containsKey("logoUrl"))      s.setLogoUrl(fields.get("logoUrl"));
+        if (fields.containsKey("annualPrice"))       s.setAnnualPrice(parseInt(fields.get("annualPrice")));
+        if (fields.containsKey("annualSessions"))    s.setAnnualSessions(parseInt(fields.get("annualSessions")));
+        if (fields.containsKey("annualDescription")) s.setAnnualDescription(fields.get("annualDescription"));
         return repo.save(s);
+    }
+
+    private static Integer parseInt(String value) {
+        return value == null || value.isBlank() ? null : Integer.valueOf(value.trim());
     }
 }

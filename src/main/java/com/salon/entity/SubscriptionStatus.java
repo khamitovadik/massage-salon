@@ -1,7 +1,8 @@
 package com.salon.entity;
 
 public enum SubscriptionStatus {
-    PENDING,    // ожидает подтверждения администратором
+    PENDING,    // заявка клиента — ожидает подтверждения администратором
+    OFFERED,    // выдан администратором — ожидает согласия клиента
     ACTIVE,
     EXPIRED,
     EXHAUSTED,

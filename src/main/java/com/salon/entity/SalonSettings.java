@@ -35,4 +35,14 @@ public class SalonSettings {
 
     @Column(name = "logo_url")
     private String logoUrl;
+
+    // Годовой абонемент: условия, которые видит клиент
+    @Column(name = "annual_price")
+    private Integer annualPrice;
+
+    @Column(name = "annual_sessions")
+    private Integer annualSessions;
+
+    @Column(name = "annual_description", columnDefinition = "TEXT")
+    private String annualDescription;
 }

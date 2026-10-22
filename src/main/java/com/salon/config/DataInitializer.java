@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -17,9 +18,14 @@ public class DataInitializer implements ApplicationRunner {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(ApplicationArguments args) {
+        // Hibernate создал CHECK по старому списку статусов, а ddl-auto=update его не обновляет —
+        // без этого новый статус OFFERED не сохранится
+        jdbcTemplate.execute("ALTER TABLE IF EXISTS subscriptions DROP CONSTRAINT IF EXISTS subscriptions_status_check");
+
         userRepository.findByEmail("admin@salon.ru").ifPresentOrElse(
             admin -> {
                 // Всегда обновляем пароль при старте — на случай если хеш устарел

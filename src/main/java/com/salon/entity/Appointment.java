@@ -38,6 +38,10 @@ public class Appointment {
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
+    // Сеанс абонемента уже списан (при подтверждении); при отмене возвращается
+    @Column(name = "subscription_charged")
+    private Boolean subscriptionCharged;
+
     // Дата и время начала
     @Column(name = "start_time", nullable = false)
     private LocalDateTime startTime;

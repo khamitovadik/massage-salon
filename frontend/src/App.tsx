@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { getAuth } from './store/auth'
 import Layout from './components/Layout'
+import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
@@ -18,12 +19,13 @@ import UsersPage from './pages/UsersPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = getAuth()
-  return token ? <>{children}</> : <Navigate to="/login" replace />
+  return token ? <>{children}</> : <Navigate to="/welcome" replace />
 }
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/welcome" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/" element={<RequireAuth><Layout /></RequireAuth>}>

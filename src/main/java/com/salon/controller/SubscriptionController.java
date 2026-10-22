@@ -22,7 +22,7 @@ public class SubscriptionController {
 
     /**
      * Создать абонемент.
-     * ADMIN/OWNER могут указать clientId. CLIENT — записывает на себя.
+     * CLIENT — заявка на себя (ждёт подтверждения). ADMIN/OWNER — выдают клиенту (ждёт согласия клиента).
      * POST /api/subscriptions
      */
     @PostMapping
@@ -62,11 +62,11 @@ public class SubscriptionController {
     }
 
     /**
-     * Абонементы конкретного клиента — ADMIN/OWNER.
+     * Абонементы конкретного клиента — ADMIN/OWNER/EMPLOYEE (мастер — для записи по абонементу).
      * GET /api/subscriptions/client/{clientId}
      */
     @GetMapping("/client/{clientId}")
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
     public ResponseEntity<List<SubscriptionResponse>> byClient(@PathVariable Long clientId) {
         return ResponseEntity.ok(subscriptionService.getByClient(clientId));
     }
@@ -110,6 +110,36 @@ public class SubscriptionController {
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
         return ResponseEntity.ok(subscriptionService.reject(id, reason));
+    }
+
+    /**
+     * ✅ Клиент принимает выданный ему абонемент (OFFERED → ACTIVE).
+     * PATCH /api/subscriptions/{id}/accept
+     */
+    @PatchMapping("/{id}/accept")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<SubscriptionResponse> accept(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(subscriptionService.accept(id, auth.getName()));
+    }
+
+    /**
+     * ❌ Клиент отказывается от выданного абонемента (OFFERED → CANCELLED).
+     * PATCH /api/subscriptions/{id}/decline
+     */
+    @PatchMapping("/{id}/decline")
+    @PreAuthorize("hasRole('CLIENT')")
+    public ResponseEntity<SubscriptionResponse> decline(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(subscriptionService.decline(id, auth.getName()));
+    }
+
+    /**
+     * 🔁 Передать незавершённый абонемент другому клиенту — только OWNER (управляющий).
+     * PATCH /api/subscriptions/{id}/transfer?toClientId=5
+     */
+    @PatchMapping("/{id}/transfer")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<SubscriptionResponse> transfer(@PathVariable Long id, @RequestParam Long toClientId) {
+        return ResponseEntity.ok(subscriptionService.transfer(id, toClientId));
     }
 
     /**

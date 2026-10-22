@@ -2,9 +2,11 @@ package com.salon.dto.response;
 
 import com.salon.entity.Subscription;
 import com.salon.entity.SubscriptionStatus;
+import com.salon.entity.SubscriptionType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -29,6 +31,8 @@ public class SubscriptionResponse {
     private LocalDate expiryDate;
 
     private SubscriptionStatus status;
+    private SubscriptionType type;
+    private BigDecimal price;
     private String notes;
     private LocalDateTime createdAt;
 
@@ -46,6 +50,8 @@ public class SubscriptionResponse {
             .startDate(s.getStartDate())
             .expiryDate(s.getExpiryDate())
             .status(s.getStatus())
+            .type(s.getType() != null ? s.getType() : SubscriptionType.COURSE)
+            .price(s.getPrice())
             .notes(s.getNotes())
             .createdAt(s.getCreatedAt())
             .build();

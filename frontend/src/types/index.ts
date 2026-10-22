@@ -2,7 +2,11 @@ export type Role = 'CLIENT' | 'EMPLOYEE' | 'ADMIN' | 'OWNER'
 
 export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'
 
-export type SubscriptionStatus = 'ACTIVE' | 'EXPIRED' | 'EXHAUSTED' | 'CANCELLED'
+export type SubscriptionStatus = 'PENDING' | 'OFFERED' | 'ACTIVE' | 'EXPIRED' | 'EXHAUSTED' | 'CANCELLED'
+
+export type SubscriptionType = 'ANNUAL' | 'COURSE'
+
+export type HourSlotStatus = 'FREE' | 'BUSY' | 'BLOCKED' | 'PAST'
 
 export interface AuthResponse {
   token: string
@@ -60,6 +64,7 @@ export interface Appointment {
   status: AppointmentStatus
   comment: string
   createdAt: string
+  subscriptionId?: number | null
 }
 
 export interface Subscription {
@@ -75,8 +80,37 @@ export interface Subscription {
   startDate: string
   expiryDate: string
   status: SubscriptionStatus
+  type: SubscriptionType
+  price: number | null
   notes: string
   createdAt: string
+}
+
+export interface HourSlot {
+  time: string
+  status: HourSlotStatus
+  appointmentId?: number | null
+  clientName?: string | null
+  serviceName?: string | null
+}
+
+export interface ClientShort {
+  id: number
+  name: string
+  phone: string
+}
+
+export interface SalonSettings {
+  name: string
+  address: string
+  phone: string
+  email: string
+  description: string
+  workingHours: string
+  instagramUrl: string
+  annualPrice: number | null
+  annualSessions: number | null
+  annualDescription: string | null
 }
 
 // Request types
@@ -98,13 +132,16 @@ export interface CreateAppointmentRequest {
   startTime: string
   comment?: string
   clientId?: number
+  subscriptionId?: number
 }
 
 export interface CreateSubscriptionRequest {
   serviceId: number
-  totalSessions: number
-  startDate: string
-  expiryDate: string
+  type?: SubscriptionType
+  totalSessions?: number
+  price?: number
+  startDate?: string
+  expiryDate?: string
   notes?: string
   clientId?: number
 }

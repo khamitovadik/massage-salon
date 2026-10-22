@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { cancelAppointment, getAllAppointments, getMyAppointments, updateAppointmentStatus } from '../api/appointments'
+import { cancelAppointment, getAllAppointments, getMasterAppointments, getMyAppointments, updateAppointmentStatus } from '../api/appointments'
 import { getAuth, isAdmin } from '../store/auth'
 import type { Appointment, AppointmentStatus } from '../types'
 import { formatDateTime, statusBadge, statusLabel } from '../utils/format'
@@ -9,18 +9,24 @@ import { formatDateTime, statusBadge, statusLabel } from '../utils/format'
 export default function AppointmentsPage() {
   const { user } = getAuth()
   const admin = isAdmin(user?.role)
+  const master = user?.role === 'EMPLOYEE'
+  const showClient = admin || master
+  // Мастер может записывать, но не отменять; клиент отменяет свои записи, админ — любые
+  const canCancel = !master
   const [list, setList] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
 
   function load() {
-    const fn = admin ? getAllAppointments : getMyAppointments
+    const fn = admin ? getAllAppointments : master ? getMasterAppointments : getMyAppointments
     fn().then(setList).finally(() => setLoading(false))
   }
 
   useEffect(load, [])
 
   async function handleCancel(id: number) {
-    if (!confirm('Отменить запись?')) return
+    const appt = list.find(a => a.id === id)
+    const note = appt?.subscriptionId ? '\nСеанс абонемента не будет списан.' : ''
+    if (!confirm('Отменить запись?' + note)) return
     try {
       const updated = await cancelAppointment(id)
       setList(l => l.map(a => a.id === id ? updated : a))
@@ -46,7 +52,7 @@ export default function AppointmentsPage() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Записи</h1>
-        <Link to="/appointments/new" className="btn btn-primary">+ Новая запись</Link>
+        <Link to="/appointments/new" className="btn btn-primary">+ Записаться</Link>
       </div>
 
       <div className="card">
@@ -57,7 +63,7 @@ export default function AppointmentsPage() {
             <table>
               <thead>
                 <tr>
-                  {admin && <th>Клиент</th>}
+                  {showClient && <th>Клиент</th>}
                   <th>Дата и время</th>
                   <th>Услуга</th>
                   <th>Сотрудник</th>
@@ -69,14 +75,16 @@ export default function AppointmentsPage() {
               <tbody>
                 {list.map(a => (
                   <tr key={a.id}>
-                    {admin && <td>{a.clientName}<br /><span className="text-muted text-sm">{a.clientPhone}</span></td>}
+                    {showClient && <td>{a.clientName}<br /><span className="text-muted text-sm">{a.clientPhone}</span></td>}
                     <td>
                       {formatDateTime(a.startTime)}<br />
                       <span className="text-muted text-sm">{a.durationMinutes} мин</span>
                     </td>
                     <td>{a.serviceName}</td>
                     <td>{a.employeeName}<br /><span className="text-muted text-sm">{a.employeeSpecialization}</span></td>
-                    <td>{a.servicePrice} ₸</td>
+                    <td>
+                      {a.subscriptionId ? <span className="badge badge-purple">Абонемент</span> : <>{a.servicePrice} ₸</>}
+                    </td>
                     <td>
                       <span className={`badge ${statusBadge(a.status)}`}>{statusLabel(a.status)}</span>
                     </td>
@@ -88,8 +96,8 @@ export default function AppointmentsPage() {
                             <button className="btn btn-sm btn-primary" onClick={() => handleStatus(a.id, 'COMPLETED')}>✅</button>
                           </>
                         )}
-                        {a.status !== 'CANCELLED' && a.status !== 'COMPLETED' && (
-                          <button className="btn btn-sm btn-danger" onClick={() => handleCancel(a.id)}>✕</button>
+                        {canCancel && a.status !== 'CANCELLED' && a.status !== 'COMPLETED' && (
+                          <button className="btn btn-sm btn-danger" title="Отменить запись" onClick={() => handleCancel(a.id)}>✕</button>
                         )}
                       </div>
                     </td>

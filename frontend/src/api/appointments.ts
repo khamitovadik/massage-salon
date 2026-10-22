@@ -7,6 +7,9 @@ export const getMyAppointments = () =>
 export const getAllAppointments = () =>
   api.get<Appointment[]>('/appointments').then((r) => r.data)
 
+export const getMasterAppointments = () =>
+  api.get<Appointment[]>('/appointments/master/my').then((r) => r.data)
+
 export const getAppointmentsByEmployee = (employeeId: number) =>
   api.get<Appointment[]>(`/appointments/employee/${employeeId}`).then((r) => r.data)
 

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
@@ -15,6 +16,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findAllByEmployeeIdOrderByStartTimeDesc(Long employeeId);
     List<Appointment> findAllByStatusOrderByStartTimeDesc(AppointmentStatus status);
     List<Appointment> findAllByOrderByStartTimeDesc();
+
+    /** Есть ли у абонемента будущие активные записи (перед передачей другому клиенту) */
+    boolean existsBySubscriptionIdAndStatusInAndStartTimeAfter(
+        Long subscriptionId, Collection<AppointmentStatus> statuses, LocalDateTime after);
 
     /** Проверка конфликта времени у сотрудника */
     @Query("""

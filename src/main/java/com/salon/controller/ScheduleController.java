@@ -1,5 +1,6 @@
 package com.salon.controller;
 
+import com.salon.dto.response.HourSlotResponse;
 import com.salon.entity.EmployeeSchedule;
 import com.salon.entity.TimeBlock;
 import com.salon.service.ScheduleService;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -53,6 +55,20 @@ public class ScheduleController {
             @RequestParam Long serviceId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(scheduleService.getAvailableSlots(employeeId, serviceId, date));
+    }
+
+    /**
+     * Часовые окошки мастера на дату (свободные и занятые).
+     * Персонал видит в занятых окошках имя клиента, клиент — только «занято».
+     * GET /api/schedule/hourly?employeeId=1&date=2026-07-01
+     */
+    @GetMapping("/hourly")
+    public ResponseEntity<List<HourSlotResponse>> getHourly(
+            @RequestParam Long employeeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            Authentication auth) {
+        boolean staff = auth.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_CLIENT"));
+        return ResponseEntity.ok(scheduleService.getHourlySlots(employeeId, date, staff));
     }
 
     /**

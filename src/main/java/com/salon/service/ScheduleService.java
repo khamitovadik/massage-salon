@@ -1,5 +1,6 @@
 package com.salon.service;
 
+import com.salon.dto.response.HourSlotResponse;
 import com.salon.entity.*;
 import com.salon.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,10 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class ScheduleService {
+
+    /** Часы работы по умолчанию, если у мастера не заполнено расписание на этот день */
+    private static final LocalTime DEFAULT_START = LocalTime.of(9, 0);
+    private static final LocalTime DEFAULT_END = LocalTime.of(21, 0);
 
     private final EmployeeScheduleRepository scheduleRepo;
     private final TimeBlockRepository timeBlockRepo;
@@ -143,5 +148,85 @@ public class ScheduleService {
             cursor = cursor.plusMinutes(30);
         }
         return available;
+    }
+
+    /**
+     * Часовые окошки мастера на дату: свободные, занятые, недоступные и прошедшие.
+     * staffView — показывать имя клиента и услугу в занятых окошках.
+     */
+    public List<HourSlotResponse> getHourlySlots(Long employeeId, LocalDate date, boolean staffView) {
+        LocalTime[] hours = workingHours(employeeId, date);
+        if (hours == null) return List.of();
+
+        List<TimeBlock> blocks = timeBlockRepo.findAllByEmployeeIdAndBlockDate(employeeId, date);
+        List<Appointment> dayAppointments = appointmentRepo
+            .findAllInRange(date.atStartOfDay(), date.plusDays(1).atStartOfDay()).stream()
+            .filter(a -> a.getEmployee().getId().equals(employeeId))
+            .filter(a -> a.getStatus() != AppointmentStatus.CANCELLED)
+            .toList();
+
+        List<HourSlotResponse> slots = new ArrayList<>();
+        LocalDateTime dayEnd = date.atTime(hours[1]);
+        for (LocalDateTime start = date.atTime(hours[0]); !start.plusHours(1).isAfter(dayEnd); start = start.plusHours(1)) {
+            LocalDateTime end = start.plusHours(1);
+            HourSlotResponse.HourSlotResponseBuilder slot = HourSlotResponse.builder().time(start.toLocalTime().toString());
+
+            LocalDateTime slotStart = start;
+            Appointment busy = dayAppointments.stream()
+                .filter(a -> a.getStartTime().isBefore(end) && a.getEndTime().isAfter(slotStart))
+                .findFirst().orElse(null);
+
+            if (busy != null) {
+                slot.status("BUSY").appointmentId(staffView ? busy.getId() : null);
+                if (staffView) {
+                    slot.clientName(busy.getClient().getName()).serviceName(busy.getService().getName());
+                }
+            } else if (isBlocked(blocks, date, start, end)) {
+                slot.status("BLOCKED");
+            } else if (start.isBefore(LocalDateTime.now())) {
+                slot.status("PAST");
+            } else {
+                slot.status("FREE");
+            }
+            slots.add(slot.build());
+        }
+        return slots;
+    }
+
+    /**
+     * Проверить, что запись укладывается в рабочее время мастера, не попадает
+     * на блокировку и не начинается в прошлом. Бросает RuntimeException с понятным текстом.
+     */
+    public void assertBookable(Long employeeId, LocalDateTime start, LocalDateTime end) {
+        if (start.isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Нельзя записаться на прошедшее время");
+        }
+        if (start.getMinute() != 0 || start.getSecond() != 0) {
+            throw new RuntimeException("Запись возможна только на начало часа");
+        }
+        LocalDate date = start.toLocalDate();
+        LocalTime[] hours = workingHours(employeeId, date);
+        if (hours == null) {
+            throw new RuntimeException("У мастера выходной в этот день");
+        }
+        if (start.toLocalTime().isBefore(hours[0]) || !end.toLocalDate().equals(date) || end.toLocalTime().isAfter(hours[1])) {
+            throw new RuntimeException("Время вне рабочих часов мастера (" + hours[0] + "–" + hours[1] + ")");
+        }
+        if (isBlocked(timeBlockRepo.findAllByEmployeeIdAndBlockDate(employeeId, date), date, start, end)) {
+            throw new RuntimeException("Мастер недоступен в это время");
+        }
+    }
+
+    /** Рабочие часы мастера на дату: [начало, конец] или null, если выходной */
+    private LocalTime[] workingHours(Long employeeId, LocalDate date) {
+        EmployeeSchedule sch = scheduleRepo.findByEmployeeIdAndDayOfWeek(employeeId, date.getDayOfWeek()).orElse(null);
+        if (sch == null) return new LocalTime[]{DEFAULT_START, DEFAULT_END};
+        if (!sch.isWorking() || sch.getWorkStart() == null || sch.getWorkEnd() == null) return null;
+        return new LocalTime[]{sch.getWorkStart(), sch.getWorkEnd()};
+    }
+
+    private boolean isBlocked(List<TimeBlock> blocks, LocalDate date, LocalDateTime start, LocalDateTime end) {
+        return blocks.stream().anyMatch(b -> b.getStartTime() == null
+            || (date.atTime(b.getStartTime()).isBefore(end) && date.atTime(b.getEndTime()).isAfter(start)));
     }
 }

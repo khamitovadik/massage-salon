@@ -1,9 +1,11 @@
 package com.salon.dto.request;
 
+import com.salon.entity.SubscriptionType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
@@ -15,14 +17,20 @@ public class CreateSubscriptionRequest {
     @NotNull(message = "Укажите услугу")
     private Long serviceId;
 
-    @NotNull(message = "Укажите количество сеансов")
+    /** Тип: ANNUAL — годовой, COURSE — курс (по умолчанию ANNUAL) */
+    private SubscriptionType type;
+
+    /** Количество сеансов (для годового по умолчанию — из настроек салона) */
     @Min(value = 1, message = "Минимум 1 сеанс")
     private Integer totalSessions;
 
-    @NotNull(message = "Укажите дату начала")
+    /** Цена (клиент не задаёт — для годового берётся из настроек салона) */
+    private BigDecimal price;
+
+    /** Дата начала (по умолчанию — сегодня) */
     private LocalDate startDate;
 
-    @NotNull(message = "Укажите дату окончания")
+    /** Дата окончания (для годового — автоматически через год) */
     private LocalDate expiryDate;
 
     private String notes;

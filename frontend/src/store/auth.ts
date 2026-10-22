@@ -34,6 +34,10 @@ export function clearAuth(): void {
   localStorage.removeItem('user')
 }
 
+export function isStaff(role?: Role | null): boolean {
+  return role === 'ADMIN' || role === 'OWNER' || role === 'EMPLOYEE'
+}
+
 export function isAdmin(role?: Role | null): boolean {
   return role === 'ADMIN' || role === 'OWNER'
 }

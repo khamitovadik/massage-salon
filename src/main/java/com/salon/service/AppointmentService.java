@@ -31,12 +31,13 @@ public class AppointmentService {
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
     private final TelegramNotificationService telegramNotificationService;
+    private final ScheduleService scheduleService;
 
     /**
      * Создать запись.
      * currentUserEmail — email авторизованного пользователя (из JWT).
      * Если currentUser — CLIENT, он записывает себя.
-     * Если ADMIN/OWNER — может передать clientId для записи другого клиента.
+     * Если ADMIN/OWNER/EMPLOYEE (мастер) — записывает клиента по clientId.
      */
     @Transactional
     public AppointmentResponse create(CreateAppointmentRequest req, String currentUserEmail) {
@@ -45,12 +46,13 @@ public class AppointmentService {
 
         // Определяем клиента
         User client;
-        if (req.getClientId() != null &&
-            (currentUser.getRole() == Role.ADMIN || currentUser.getRole() == Role.OWNER)) {
+        if (currentUser.getRole() == Role.CLIENT) {
+            client = currentUser;
+        } else if (req.getClientId() != null) {
             client = userRepository.findById(req.getClientId())
                 .orElseThrow(() -> new RuntimeException("Клиент не найден: " + req.getClientId()));
         } else {
-            client = currentUser;
+            throw new RuntimeException("Выберите клиента для записи");
         }
 
         Employee employee = employeeRepository.findById(req.getEmployeeId())
@@ -70,9 +72,11 @@ public class AppointmentService {
         LocalDateTime startTime = req.getStartTime();
         LocalDateTime endTime = startTime.plusMinutes(service.getDurationMinutes());
 
+        scheduleService.assertBookable(employee.getId(), startTime, endTime);
+
         // Проверка пересечения времени
         if (appointmentRepository.hasConflict(employee.getId(), startTime, endTime)) {
-            throw new RuntimeException("Выбранное время уже занято у этого сотрудника");
+            throw new RuntimeException("Это время уже занято — выберите свободное окошко");
         }
 
         // ✅ НОВОЕ: Проверить абонемент если передан
@@ -178,42 +182,31 @@ public class AppointmentService {
         return AppointmentResponse.from(findOrThrow(id));
     }
 
-    /** Изменить статус записи (ADMIN/OWNER/EMPLOYEE) */
+    /** Изменить статус записи (ADMIN/OWNER) */
     @Transactional
     public AppointmentResponse updateStatus(Long id, AppointmentStatus newStatus) {
         Appointment appointment = findOrThrow(id);
         appointment.setStatus(newStatus);
 
-        // ✅ НОВОЕ: Если CONFIRMED и есть абонемент → автоматически списать сеанс
-        if (newStatus == AppointmentStatus.CONFIRMED && appointment.getSubscription() != null) {
-            Subscription sub = appointment.getSubscription();
-
-            // Перепроверить статус абонемента (на случай если что-то изменилось)
-            if (sub.getStatus() == SubscriptionStatus.ACTIVE && sub.getRemainingSessions() > 0) {
-                int remainingBefore = sub.getRemainingSessions();
-                sub.setRemainingSessions(sub.getRemainingSessions() - 1);
-
-                // Если это последний сеанс → обновить статус на EXHAUSTED
-                if (sub.getRemainingSessions() == 0) {
-                    sub.setStatus(SubscriptionStatus.EXHAUSTED);
-                    log.info("Абонемент {} исчерпан (все сеансы использованы)", sub.getId());
-                }
-
-                subscriptionRepository.save(sub);
-                log.info("✅ Сеанс абонемента {} списан. Было: {}, Осталось: {}",
-                    sub.getId(), remainingBefore, sub.getRemainingSessions());
-            }
+        if (newStatus == AppointmentStatus.CANCELLED) {
+            refundSession(appointment);
+        } else if (newStatus == AppointmentStatus.CONFIRMED || newStatus == AppointmentStatus.COMPLETED) {
+            chargeSession(appointment);
         }
 
         return AppointmentResponse.from(appointmentRepository.save(appointment));
     }
 
-    /** Отменить запись — клиент может отменить свою, ADMIN — любую */
+    /** Отменить запись — клиент свою, ADMIN/OWNER любую. Мастер отменять не может. */
     @Transactional
     public AppointmentResponse cancel(Long id, String currentUserEmail) {
         Appointment appointment = findOrThrow(id);
         User currentUser = userRepository.findByEmail(currentUserEmail)
             .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        if (currentUser.getRole() == Role.EMPLOYEE) {
+            throw new RuntimeException("Мастер не может отменять записи — обратитесь к администратору");
+        }
 
         boolean isOwner = appointment.getClient().getEmail().equals(currentUserEmail);
         boolean isAdmin = currentUser.getRole() == Role.ADMIN || currentUser.getRole() == Role.OWNER;
@@ -225,9 +218,55 @@ public class AppointmentService {
         if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new RuntimeException("Нельзя отменить завершённую запись");
         }
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new RuntimeException("Запись уже отменена");
+        }
 
         appointment.setStatus(AppointmentStatus.CANCELLED);
+        // Отменённая запись не расходует абонемент
+        refundSession(appointment);
         return AppointmentResponse.from(appointmentRepository.save(appointment));
+    }
+
+    /** Записи текущего мастера (EMPLOYEE) */
+    public List<AppointmentResponse> getMasterAppointments(String email) {
+        User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        Employee employee = employeeRepository.findByUserId(user.getId())
+            .orElseThrow(() -> new RuntimeException("Профиль мастера не найден"));
+        return getByEmployee(employee.getId());
+    }
+
+    /** Списать сеанс абонемента за запись (один раз) */
+    private void chargeSession(Appointment appointment) {
+        Subscription sub = appointment.getSubscription();
+        if (sub == null || Boolean.TRUE.equals(appointment.getSubscriptionCharged())) return;
+
+        if (sub.getStatus() != SubscriptionStatus.ACTIVE || sub.getRemainingSessions() <= 0) {
+            throw new RuntimeException("В абонементе нет доступных сеансов");
+        }
+        sub.setRemainingSessions(sub.getRemainingSessions() - 1);
+        if (sub.getRemainingSessions() == 0) {
+            sub.setStatus(SubscriptionStatus.EXHAUSTED);
+            log.info("Абонемент {} исчерпан (все сеансы использованы)", sub.getId());
+        }
+        appointment.setSubscriptionCharged(true);
+        subscriptionRepository.save(sub);
+        log.info("Сеанс абонемента {} списан. Осталось: {}", sub.getId(), sub.getRemainingSessions());
+    }
+
+    /** Вернуть сеанс абонемента, если он был списан за эту запись */
+    private void refundSession(Appointment appointment) {
+        Subscription sub = appointment.getSubscription();
+        if (sub == null || !Boolean.TRUE.equals(appointment.getSubscriptionCharged())) return;
+
+        sub.setRemainingSessions(sub.getRemainingSessions() + 1);
+        if (sub.getStatus() == SubscriptionStatus.EXHAUSTED) {
+            sub.setStatus(SubscriptionStatus.ACTIVE);
+        }
+        appointment.setSubscriptionCharged(false);
+        subscriptionRepository.save(sub);
+        log.info("Сеанс абонемента {} возвращён после отмены записи {}", sub.getId(), appointment.getId());
     }
 
     private Appointment findOrThrow(Long id) {

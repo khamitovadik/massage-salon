@@ -23,7 +23,7 @@ public class AppointmentController {
     private final AppointmentService appointmentService;
 
     /**
-     * Создать запись — любой авторизованный пользователь
+     * Создать запись — клиент себе; ADMIN/OWNER/EMPLOYEE (мастер) — клиенту по clientId
      * POST /api/appointments
      */
     @PostMapping
@@ -40,6 +40,16 @@ public class AppointmentController {
     @GetMapping("/my")
     public ResponseEntity<List<AppointmentResponse>> my(Authentication auth) {
         return ResponseEntity.ok(appointmentService.getMyAppointments(auth.getName()));
+    }
+
+    /**
+     * Записи текущего мастера
+     * GET /api/appointments/master/my
+     */
+    @GetMapping("/master/my")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    public ResponseEntity<List<AppointmentResponse>> masterMy(Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getMasterAppointments(auth.getName()));
     }
 
     /**
@@ -96,7 +106,7 @@ public class AppointmentController {
     }
 
     /**
-     * Отменить запись — клиент свою, ADMIN любую
+     * Отменить запись — клиент свою, ADMIN/OWNER любую; мастер отменять не может
      * PATCH /api/appointments/{id}/cancel
      */
     @PatchMapping("/{id}/cancel")
