@@ -68,7 +68,7 @@ export default function EmployeesPage() {
         <div className="card mb-4">
           <h2 style={{ fontWeight: 600, marginBottom: 16 }}>Новый сотрудник</h2>
           <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="field-row">
               <div className="field">
                 <label className="label">Имя</label>
                 <input className="input" value={form.name} onChange={set('name')} required />

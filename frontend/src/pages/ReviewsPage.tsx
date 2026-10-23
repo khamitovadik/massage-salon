@@ -49,7 +49,7 @@ export default function ReviewsPage() {
       <h1 className="page-title" style={{ marginBottom: 24 }}>Отзывы</h1>
 
       {/* Форма отзыва */}
-      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>
         <h3 style={{ marginBottom: 16 }}>Оставить отзыв</h3>
         <div style={{ marginBottom: 12 }}>
           <label style={{ fontWeight: 600, marginRight: 12 }}>Оценка:</label>
@@ -87,7 +87,7 @@ export default function ReviewsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {reviews.filter(r => r.approved).map(r => (
             <div key={r.id} style={{
-              background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 20
+              background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
                 <strong>{r.clientName}</strong>

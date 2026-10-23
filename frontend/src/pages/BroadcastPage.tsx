@@ -23,7 +23,7 @@ export default function BroadcastPage() {
         Отправить сообщение всем клиентам у которых привязан Telegram.
       </p>
 
-      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 24, maxWidth: 560 }}>
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, maxWidth: 560 }}>
         <label style={{ display: 'block', fontWeight: 600, marginBottom: 8 }}>Сообщение</label>
         <textarea
           className="input"

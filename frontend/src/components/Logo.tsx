@@ -1,7 +1,7 @@
 // Знак Em.Del.Relaxx: ладонь с ростком. variant="soft" — лавандовый фон для светлых карточек.
 export default function Logo({ size = 40, variant = 'solid' }: { size?: number; variant?: 'solid' | 'soft' }) {
   const bg = variant === 'solid' ? 'var(--brand)' : 'var(--brand-light)'
-  const fg = variant === 'solid' ? '#fff' : 'var(--brand)'
+  const fg = variant === 'solid' ? 'var(--on-brand)' : 'var(--brand)'
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none" aria-label="Em.Del.Relaxx" role="img" style={{ flexShrink: 0 }}>
       <rect width="48" height="48" rx="12" fill={bg} />

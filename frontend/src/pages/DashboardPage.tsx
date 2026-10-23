@@ -30,17 +30,17 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--brand)' }}>{upcoming.length}</div>
+      <div className="stat-grid">
+        <div className="card stat-card">
+          <div className="stat-value" style={{ color: 'var(--brand)' }}>{upcoming.length}</div>
           <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Предстоящих записей</div>
         </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--success)' }}>{subs.length}</div>
+        <div className="card stat-card">
+          <div className="stat-value" style={{ color: 'var(--success)' }}>{subs.length}</div>
           <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Активных абонементов</div>
         </div>
-        <div className="card" style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--warning)' }}>
+        <div className="card stat-card">
+          <div className="stat-value" style={{ color: 'var(--warning)' }}>
             {subs.reduce((sum, s) => sum + s.remainingSessions, 0)}
           </div>
           <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Сеансов по абонементам</div>

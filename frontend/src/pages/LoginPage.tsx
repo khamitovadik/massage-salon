@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { login } from '../api/auth'
 import { saveAuth } from '../store/auth'
-import Logo from '../components/Logo'
+import AuthLayout from '../components/AuthLayout'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -25,50 +25,38 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh', display: 'flex', alignItems: 'center',
-      justifyContent: 'center', background: 'var(--bg)', padding: 16
-    }}>
-      <div className="card" style={{ width: 360, maxWidth: '100%', padding: 28 }}>
-        <Logo size={48} />
-        <h1 style={{ fontSize: 22, fontWeight: 600, margin: '16px 0 4px' }}>Em.Del.Relaxx</h1>
-        <p style={{ color: 'var(--text-muted)', marginBottom: 24 }}>Войдите в систему</p>
+    <AuthLayout title="С возвращением" subtitle="Войдите, чтобы записаться или управлять салоном">
+      <form onSubmit={handleSubmit}>
+        <div className="field">
+          <label className="label">Email</label>
+          <input
+            className="input"
+            type="email"
+            value={form.email}
+            onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+            placeholder="admin@salon.ru"
+            required
+          />
+        </div>
+        <div className="field">
+          <label className="label">Пароль</label>
+          <input
+            className="input"
+            type="password"
+            value={form.password}
+            onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+            placeholder="••••••••"
+            required
+          />
+        </div>
+        <button className="btn btn-primary w-full" type="submit" disabled={loading}>
+          {loading ? 'Вход...' : 'Войти'}
+        </button>
+      </form>
 
-        <form onSubmit={handleSubmit}>
-          <div className="field">
-            <label className="label">Email</label>
-            <input
-              className="input"
-              type="email"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              placeholder="admin@salon.ru"
-              required
-            />
-          </div>
-          <div className="field">
-            <label className="label">Пароль</label>
-            <input
-              className="input"
-              type="password"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <button className="btn btn-primary w-full" type="submit" disabled={loading}>
-            {loading ? 'Вход...' : 'Войти'}
-          </button>
-        </form>
-
-        <p style={{ marginTop: 16, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>
-          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
-        </p>
-        <p style={{ marginTop: 8, textAlign: 'center', fontSize: 13 }}>
-          <Link to="/welcome">← О салоне</Link>
-        </p>
-      </div>
-    </div>
+      <p className="auth-links">
+        Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+      </p>
+    </AuthLayout>
   )
 }

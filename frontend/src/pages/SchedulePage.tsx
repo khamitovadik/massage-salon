@@ -50,7 +50,7 @@ export default function SchedulePage() {
             const days = schedules[emp.id] ?? []
             return (
               <div key={emp.id} style={{
-                background: '#fff', border: '1px solid var(--border)', borderRadius: 12, padding: 20
+                background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20
               }}>
                 <h3 style={{ marginBottom: 12 }}>👤 {emp.name}</h3>
                 {days.length === 0 ? (
@@ -60,7 +60,7 @@ export default function SchedulePage() {
                     {days.map((d, i) => (
                       <div key={i} style={{
                         padding: '8px 14px', borderRadius: 10, textAlign: 'center',
-                        background: d.working ? 'var(--brand-light)' : '#f3f4f6',
+                        background: d.working ? 'var(--brand-light)' : 'var(--border)',
                         border: `1px solid ${d.working ? 'var(--brand)' : 'var(--border)'}`,
                         minWidth: 60
                       }}>

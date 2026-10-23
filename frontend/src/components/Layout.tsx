@@ -3,12 +3,13 @@ import toast from 'react-hot-toast'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Bell, CalendarClock, CalendarDays, ChartLine, ChevronDown, ChevronRight, ChevronsUpDown,
-  CircleHelp, ContactRound, Home, LogOut, Menu, Send, SlidersHorizontal, Sparkles, Star,
+  CircleHelp, ContactRound, Home, LayoutGrid, LogOut, Menu, Plus, Send, SlidersHorizontal, Sparkles, Star,
   Ticket, Users, X, type LucideIcon,
 } from 'lucide-react'
 import { clearAuth, getAuth, isAdmin } from '../store/auth'
 import type { Role } from '../types'
 import Logo from './Logo'
+import ThemeToggle from './ThemeToggle'
 
 interface NavItem { to: string; label: string; icon: LucideIcon; exact?: boolean; adminOnly?: boolean }
 
@@ -134,6 +135,7 @@ export default function Layout() {
             <span className="breadcrumbs-current">{current?.label ?? 'Главная'}</span>
           </div>
           <div className="topbar-right">
+            <ThemeToggle />
             <button className="icon-btn" aria-label="Уведомления"><Bell size={18} strokeWidth={1.75} /></button>
             <span className="topbar-divider" />
             <div className="user-menu-anchor">
@@ -151,6 +153,17 @@ export default function Layout() {
           <Outlet />
         </main>
       </div>
+
+      {/* На телефоне — нижняя панель вкладок, остальные разделы в боковом меню через «Ещё» */}
+      <nav className="tabbar" aria-label="Основные разделы">
+        <NavLink to="/" end className="tab"><Home size={22} strokeWidth={1.75} /><span>Главная</span></NavLink>
+        <NavLink to="/appointments" end className="tab"><CalendarDays size={22} strokeWidth={1.75} /><span>Записи</span></NavLink>
+        <NavLink to="/appointments/new" className="tab tab-main" aria-label="Новая запись"><span className="tab-fab"><Plus size={26} /></span></NavLink>
+        <NavLink to="/subscriptions" className="tab"><Ticket size={22} strokeWidth={1.75} /><span>Абонементы</span></NavLink>
+        <button className={`tab${open ? ' active' : ''}`} onClick={() => setOpen(true)}>
+          <LayoutGrid size={22} strokeWidth={1.75} /><span>Ещё</span>
+        </button>
+      </nav>
     </div>
   )
 }

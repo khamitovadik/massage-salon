@@ -30,7 +30,7 @@ export default function AnalyticsPage() {
       <h1 className="page-title" style={{ marginBottom: 24 }}>Аналитика</h1>
 
       {stats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
           <StatCard label="Всего записей" value={stats.totalAppointments} color="#6366f1" />
           <StatCard label="Завершено" value={stats.completedAppointments} color="#22c55e" />
           <StatCard label="Отменено" value={stats.cancelledAppointments} color="#ef4444" />
@@ -46,7 +46,7 @@ export default function AnalyticsPage() {
 function StatCard({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
     <div style={{
-      background: '#fff', border: '1px solid var(--border)', borderRadius: 12,
+      background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12,
       padding: '20px 24px', borderTop: `4px solid ${color}`
     }}>
       <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>{label}</div>

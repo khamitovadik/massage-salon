@@ -66,7 +66,7 @@ export default function ServicesPage() {
         <div className="card mb-4">
           <h2 style={{ fontWeight: 600, marginBottom: 16 }}>Новая услуга</h2>
           <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <div className="field-row">
               <div className="field">
                 <label className="label">Название</label>
                 <input className="input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
@@ -91,7 +91,7 @@ export default function ServicesPage() {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(260px, 100%), 1fr))', gap: 16 }}>
         {list.map(s => (
           <div key={s.id} className="card" style={{ position: 'relative' }}>
             {!s.active && (
