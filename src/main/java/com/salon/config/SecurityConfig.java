@@ -40,7 +40,8 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/health", "/api/settings").permitAll()
+                // /error открыт, иначе любой 404/500 превращается в пустой 403 и причину не видно
+                .requestMatchers("/api/auth/**", "/api/health", "/api/settings", "/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/services").permitAll()
                 .anyRequest().authenticated()
             )
