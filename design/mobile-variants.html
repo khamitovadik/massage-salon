@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Em.Del.Relaxx — варианты мобильного дизайна</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; color: #1f1d2b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 15mm 14mm 12mm; page-break-after: always; display: flex; flex-direction: column; background: #f4f3f7; overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+.num { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #7c5cbf; }
+.head h1 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; }
+.head p { font-size: 13px; color: #6b6880; margin-top: 4px; max-width: 420px; line-height: 1.5; }
+.swatches { display: flex; gap: 6px; }
+.swatches span { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,.1); }
+.phones { display: flex; justify-content: center; gap: 30px; }
+.phone { width: 318px; height: 668px; border-radius: 46px; padding: 10px; background: #1b1a20; box-shadow: 0 24px 50px -20px rgba(31,29,43,.45); flex-shrink: 0; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden; }
+.cap { text-align: center; font-size: 11px; color: #6b6880; margin-top: 10px; font-weight: 500; }
+.notes { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.note { background: #fff; border-radius: 12px; padding: 12px 14px; font-size: 11.5px; line-height: 1.5; color: #4b4860; }
+.note b { display: block; color: #1f1d2b; font-size: 12px; margin-bottom: 3px; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.wa { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+.photo { display: flex; align-items: center; justify-content: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+
+/* ---------- Обложка ---------- */
+.cover { background: #faf7f2; justify-content: space-between; }
+.cover h1 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 64px; line-height: 1.02; margin-top: 30px; }
+.cover h1 em { color: #7c5cbf; }
+.cover .lead { font-size: 15px; color: #6b6880; margin-top: 18px; max-width: 470px; line-height: 1.6; }
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.toc div { border-radius: 18px; padding: 20px; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; }
+.toc b { font-size: 18px; }
+.toc small { font-size: 12px; opacity: .75; line-height: 1.45; }
+.toc .n { font-size: 12px; font-weight: 700; letter-spacing: .12em; opacity: .7; }
+
+/* ---------- 1. Лаванда ---------- */
+.v1 { background: #faf7f2; color: #221d33; font-family: Inter, sans-serif; }
+.v1 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 10px; font-weight: 600; font-size: 13px; }
+.v1 .logo { display: flex; align-items: center; gap: 8px; }
+.v1 .mark { width: 30px; height: 30px; border-radius: 9px; background: #7c5cbf; }
+.v1 .ghost { border: 1px solid rgba(34,29,51,.16); border-radius: 99px; padding: 7px 14px; font-size: 12px; }
+.v1 .chips { display: flex; gap: 8px; padding: 10px 18px; }
+.v1 .chip { background: #fff; border-radius: 12px; padding: 8px 10px; font-size: 10.5px; box-shadow: 0 6px 14px -10px rgba(34,29,51,.4); white-space: nowrap; }
+.v1 .chip b { display: block; font-size: 11.5px; }
+.v1 .body { padding: 6px 18px; }
+.v1 .eyebrow { font-size: 10px; font-weight: 600; letter-spacing: .14em; color: #c49a5b; text-transform: uppercase; }
+.v1 h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 38px; line-height: 1.02; margin: 10px 0 12px; }
+.v1 h2 em { color: #7c5cbf; }
+.v1 p { font-size: 12.5px; line-height: 1.55; color: #6b6880; }
+.v1 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 99px; font-weight: 600; font-size: 13.5px; margin-top: 10px; }
+.v1 .pri { background: #7c5cbf; color: #fff; box-shadow: 0 10px 20px -10px rgba(124,92,191,.8); margin-top: 18px; }
+.v1 .sec { background: #fff; border: 1px solid rgba(34,29,51,.12); }
+.v1 .sec .wa { color: #25d366; }
+.v1 .fact { display: flex; gap: 8px; align-items: center; font-size: 11.5px; color: #6b6880; margin-top: 14px; }
+.v1 .fact svg { color: #c49a5b; }
+.v1 .h3 { font-family: "Cormorant Garamond", serif; font-size: 28px; font-weight: 500; margin: 8px 0 14px; line-height: 1.1; }
+.v1 .card { background: #fff; border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; }
+.v1 .card .t { display: flex; justify-content: space-between; align-items: flex-start; }
+.v1 .card h4 { font-family: "Cormorant Garamond", serif; font-size: 21px; font-weight: 600; }
+.v1 .pill { background: #faf7f2; border-radius: 99px; padding: 3px 8px; font-size: 10px; color: #6b6880; }
+.v1 .card .f { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(34,29,51,.08); }
+.v1 .price { font-weight: 600; font-size: 16px; }
+.v1 .link { color: #7c5cbf; font-weight: 600; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.v1 .dock { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; padding: 12px 14px 18px; background: rgba(250,247,242,.95); border-top: 1px solid rgba(34,29,51,.08); }
+.v1 .dock .btn { margin: 0; flex: 1; }
+.v1 .round { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+/* ---------- 2. Ночной спа ---------- */
+.v2 { background: #131118; color: #f3ede3; font-family: Inter, sans-serif; }
+.v2 .hero { position: relative; height: 410px; background: radial-gradient(90% 60% at 50% 30%, #3a2f4f 0%, #1c1824 70%); }
+.v2 .hero .photo { position: absolute; inset: 0; color: rgba(243,237,227,.25); }
+.v2 .nav { position: relative; display: flex; justify-content: space-between; align-items: center; padding: 22px 20px; }
+.v2 .brand { font-family: "Playfair Display", serif; font-size: 15px; letter-spacing: .04em; }
+.v2 .burger { width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(243,237,227,.25); display: flex; align-items: center; justify-content: center; }
+.v2 .hero-copy { position: absolute; left: 20px; right: 20px; bottom: 22px; }
+.v2 .eyebrow { font-size: 10px; letter-spacing: .24em; text-transform: uppercase; color: #c9a46a; }
+.v2 h2 { font-family: "Playfair Display", serif; font-weight: 500; font-size: 36px; line-height: 1.08; margin-top: 10px; }
+.v2 h2 em { color: #c9a46a; }
+.v2 .body { padding: 20px; }
+.v2 p { font-size: 12.5px; color: rgba(243,237,227,.65); line-height: 1.6; }
+.v2 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 4px; font-weight: 600; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; margin-top: 10px; }
+.v2 .gold { background: #c9a46a; color: #131118; margin-top: 18px; }
+.v2 .line { border: 1px solid rgba(243,237,227,.3); }
+.v2 .title { font-family: "Playfair Display", serif; font-size: 26px; font-weight: 500; margin: 6px 0 16px; }
+.v2 .row { padding: 14px 0; border-bottom: 1px solid rgba(243,237,227,.12); }
+.v2 .row .t { display: flex; align-items: baseline; gap: 8px; }
+.v2 .row h4 { font-family: "Playfair Display", serif; font-weight: 500; font-size: 17px; }
+.v2 .dots { flex: 1; border-bottom: 1px dotted rgba(243,237,227,.35); transform: translateY(-4px); }
+.v2 .row .p { color: #c9a46a; font-weight: 600; font-size: 14px; }
+.v2 .row small { display: block; font-size: 11px; color: rgba(243,237,227,.5); margin-top: 4px; }
+.v2 .contact { margin-top: 18px; border: 1px solid rgba(201,164,106,.4); border-radius: 6px; padding: 16px; }
+.v2 .contact div { display: flex; gap: 10px; align-items: center; font-size: 12px; padding: 5px 0; }
+.v2 .contact svg { color: #c9a46a; }
+
+/* ---------- 3. Минимализм ---------- */
+.v3 { background: #fff; color: #111; font-family: Manrope, sans-serif; }
+.v3 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 14px; font-weight: 800; font-size: 14px; letter-spacing: -.01em; }
+.v3 .nav span:last-child { font-weight: 600; font-size: 12px; text-decoration: underline; text-underline-offset: 3px; }
+.v3 .body { padding: 0 18px; }
+.v3 h2 { font-weight: 800; font-size: 40px; line-height: .98; letter-spacing: -.045em; margin-top: 8px; }
+.v3 h2 span { color: #7d9a83; }
+.v3 .photo { height: 190px; border-radius: 20px; background: #eef2ee; color: #7d9a83; margin: 18px 0 14px; }
+.v3 p { font-size: 12.5px; line-height: 1.55; color: #555; }
+.v3 .btns { display: flex; gap: 8px; margin-top: 16px; }
+.v3 .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; height: 48px; border-radius: 99px; font-weight: 700; font-size: 13px; }
+.v3 .black { background: #111; color: #fff; }
+.v3 .out { border: 1.5px solid #111; flex: 0 0 48px; }
+.v3 .tag { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #7d9a83; margin-top: 18px; }
+.v3 .title { font-weight: 800; font-size: 28px; letter-spacing: -.035em; line-height: 1.05; margin: 6px 0 12px; }
+.v3 .item { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: baseline; padding: 14px 0; border-top: 1px solid #e8e8e8; }
+.v3 .item .n { font-size: 11px; font-weight: 700; color: #aaa; }
+.v3 .item h4 { font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+.v3 .item small { display: block; font-size: 11px; color: #888; margin-top: 3px; }
+.v3 .item .p { font-weight: 800; font-size: 14px; }
+.v3 .banner { margin-top: 16px; background: #7d9a83; color: #fff; border-radius: 20px; padding: 18px; }
+.v3 .banner b { font-size: 17px; font-weight: 800; letter-spacing: -.02em; display: block; }
+.v3 .banner small { font-size: 11.5px; opacity: .85; }
+.v3 .banner .btn { background: #fff; color: #111; margin-top: 12px; height: 42px; }
+
+/* ---------- 4. Тёплое приложение ---------- */
+.v4 { background: #f4ece3; color: #3a2a20; font-family: Nunito, sans-serif; }
+.v4 .top { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 6px; }
+.v4 .hello small { display: block; font-size: 11.5px; color: #8a7466; font-weight: 600; }
+.v4 .hello b { font-size: 19px; font-weight: 800; }
+.v4 .ava { width: 38px; height: 38px; border-radius: 50%; background: #c8693f; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; }
+.v4 .body { padding: 10px 18px; }
+.v4 .promo { background: #c8693f; color: #fff; border-radius: 24px; padding: 18px; position: relative; overflow: hidden; }
+.v4 .promo::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgba(255,255,255,.12); }
+.v4 .promo h2 { font-size: 22px; font-weight: 800; line-height: 1.15; max-width: 190px; }
+.v4 .promo p { font-size: 11.5px; opacity: .9; margin-top: 6px; max-width: 200px; }
+.v4 .promo .btn { display: inline-flex; align-items: center; gap: 6px; background: #fff; color: #c8693f; border-radius: 99px; padding: 10px 16px; font-weight: 800; font-size: 12.5px; margin-top: 14px; }
+.v4 .chips { display: flex; gap: 6px; margin: 16px 0 12px; }
+.v4 .chip { padding: 8px 13px; border-radius: 99px; background: #fff; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.v4 .chip.on { background: #3a2a20; color: #fff; }
+.v4 .sec { display: flex; justify-content: space-between; align-items: baseline; font-weight: 800; font-size: 15px; }
+.v4 .sec small { font-size: 11px; color: #c8693f; }
+.v4 .svc { display: flex; gap: 12px; align-items: center; background: #fff; border-radius: 20px; padding: 10px; margin-top: 10px; }
+.v4 .svc .photo { width: 58px; height: 58px; border-radius: 16px; background: #ecdccb; color: #b08c70; font-size: 8px; flex-shrink: 0; }
+.v4 .svc div { flex: 1; }
+.v4 .svc h4 { font-size: 13.5px; font-weight: 800; }
+.v4 .svc small { font-size: 11px; color: #8a7466; }
+.v4 .svc .p { display: block; font-weight: 800; font-size: 13px; margin-top: 2px; color: #c8693f; }
+.v4 .plus { width: 34px; height: 34px; border-radius: 12px; background: #3a2a20; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.v4 .tabs { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr); align-items: end; padding: 8px 6px 16px; background: #fff; border-radius: 22px 22px 0 0; }
+.v4 .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9.5px; font-weight: 700; color: #b5a397; }
+.v4 .tab.on { color: #c8693f; }
+.v4 .fab { width: 48px; height: 48px; border-radius: 50%; background: #c8693f; color: #fff; display: flex; align-items: center; justify-content: center; margin-top: -24px; border: 4px solid #fff; }
+.v4 .day { display: flex; gap: 6px; margin: 12px 0; }
+.v4 .day div { flex: 1; background: #fff; border-radius: 14px; padding: 8px 0; text-align: center; font-size: 10px; color: #8a7466; font-weight: 700; }
+.v4 .day div b { display: block; font-size: 15px; color: #3a2a20; }
+.v4 .day .on { background: #3a2a20; color: #e8d6c6; }
+.v4 .day .on b { color: #fff; }
+.v4 .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.v4 .slot { background: #fff; border-radius: 12px; padding: 10px 0; text-align: center; font-size: 12px; font-weight: 800; }
+.v4 .slot.busy { background: transparent; border: 1.5px dashed #d9c6b5; color: #b5a397; text-decoration: line-through; }
+.v4 .slot.on { background: #c8693f; color: #fff; }
+.v4 .confirm { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 99px; background: #3a2a20; color: #fff; font-weight: 800; font-size: 13.5px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1Z"/></symbol>
+  <symbol id="cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></symbol>
+  <symbol id="ticket" viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 0 0 4v0a2 2 0 0 0 0 4v2h16v-2a2 2 0 0 1 0-4 2 2 0 0 1 0-4V6H4Z"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="wa" viewBox="0 0 24 24"><path d="M12.05.7C5.78.7.68 5.8.68 12.06c0 2 .52 3.96 1.52 5.68L.58 23.3l5.69-1.49a11.33 11.33 0 0 0 5.43 1.38h.01c6.26 0 11.36-5.1 11.36-11.36S18.32.7 12.05.7Zm5.42 13.68c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.66-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49 2.48 1.07 2.98.86 3.52.8.57-.09 1.75-.72 2-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></symbol>
+</svg>
+
+<!-- ============ Обложка ============ -->
+<section class="page cover">
+  <div>
+    <div class="num">Em.Del.Relaxx · мобильная версия</div>
+    <h1>Четыре варианта<br><em>дизайна</em> для телефона</h1>
+    <p class="lead">На каждой странице — один стиль и два экрана: первый экран входной страницы и экран с услугами или записью. Выберите вариант (или скажите, что взять из разных), и я сделаю его в проекте.</p>
+  </div>
+  <div class="toc">
+    <div style="background:#faf7f2;border:1px solid #ebe4fb"><span class="n">ВАРИАНТ 1</span><div><b>Лаванда</b><br><small>Текущий стиль: кремовый фон, фиолетовый, изящный шрифт с засечками</small></div></div>
+    <div style="background:#131118;color:#f3ede3"><span class="n">ВАРИАНТ 2</span><div><b>Ночной спа</b><br><small>Тёмный фон, золото, большое фото на первом экране — премиум</small></div></div>
+    <div style="background:#fff;border:1px solid #e8e8e8"><span class="n">ВАРИАНТ 3</span><div><b>Чистый минимализм</b><br><small>Белый, чёрный и шалфейный зелёный, крупный жирный шрифт</small></div></div>
+    <div style="background:#f4ece3;color:#3a2a20"><span class="n">ВАРИАНТ 4</span><div><b>Тёплое приложение</b><br><small>Бежевый и терракота, интерфейс как у мобильного приложения</small></div></div>
+  </div>
+  <p style="font-size:11px;color:#a3a0b5">Цены, названия услуг и «Фото» — примеры-заглушки; в проекте подставятся данные из настроек салона.</p>
+</section>
+
+<!-- ============ 1. Лаванда ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 1</div><h1>Лаванда</h1><p>Спокойный и нежный. Тот стиль, что сейчас в проекте: фирменный фиолетовый + золотистые акценты.</p></div>
+    <div class="swatches"><span style="background:#faf7f2"></span><span style="background:#7c5cbf"></span><span style="background:#c49a5b"></span><span style="background:#221d33"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v1">
+      <div class="nav"><span class="logo"><span class="mark"></span>Em.Del.Relaxx</span><span class="ghost">Войти</span></div>
+      <div class="chips">
+        <div class="chip"><b>Онлайн-запись</b>свободные окошки 24/7</div>
+        <div class="chip"><b>Абонементы</b>для вас и близких</div>
+      </div>
+      <div class="body">
+        <div class="eyebrow">Массажный салон</div>
+        <h2>Время выдохнуть<br>и <em>восстановиться</em></h2>
+        <p>Классический, расслабляющий и спортивный массаж от опытных мастеров в спокойной атмосфере.</p>
+        <div class="btn pri">Записаться онлайн <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn sec"><svg class="wa"><use href="#wa"/></svg> Написать в WhatsApp</div>
+        <div class="fact"><svg class="i"><use href="#clock"/></svg> Пн–Вс 09:00–21:00</div>
+        <div class="fact"><svg class="i"><use href="#pin"/></svg> [Адрес салона]</div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v1">
+      <div class="body" style="padding-top:26px">
+        <div class="eyebrow">Услуги и цены</div>
+        <div class="h3">Выберите свою программу</div>
+        <div class="card"><div class="t"><h4>Классический</h4><span class="pill">60 мин</span></div><p style="font-size:11.5px;margin-top:4px">Снимает напряжение в спине и шее</p><div class="f"><span class="price">12 000 ₸</span><span class="link">Записаться <svg class="i"><use href="#arrow"/></svg></span></div></div>
+        <div class="card"><div class="t"><h4>Расслабляющий</h4><span class="pill">90 мин</span></div><p style="font-size:11.5px;margin-top:4px">Медленный массаж с тёплыми маслами</p><div class="f"><span class="price">16 000 ₸</span><span class="link">Записаться <svg class="i"><use href="#arrow"/></svg></span></div></div>
+        <div class="card"><div class="t"><h4>Спортивный</h4><span class="pill">60 мин</span></div><div class="f"><span class="price">14 000 ₸</span><span class="link">Записаться <svg class="i"><use href="#arrow"/></svg></span></div></div>
+      </div>
+      <div class="dock"><div class="btn pri" style="margin:0">Записаться <svg class="i"><use href="#arrow"/></svg></div><span class="round" style="background:#25d366;color:#fff"><svg class="wa" style="width:22px;height:22px"><use href="#wa"/></svg></span><span class="round" style="background:#fff;border:1px solid rgba(34,29,51,.12);color:#5a3fa0"><svg class="i" style="width:20px;height:20px"><use href="#phone"/></svg></span></div>
+    </div></div><div class="cap">Услуги + нижняя панель записи</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Настроение</b>Мягко, «женственно», уютно. Хорошо, если основная аудитория — женщины.</div>
+    <div class="note"><b>Что удобно</b>Кнопки записи всегда внизу под пальцем, WhatsApp и звонок в один тап.</div>
+    <div class="note"><b>Работы</b>Уже сделан в проекте — останется только доработать мелочи.</div>
+  </div>
+</section>
+
+<!-- ============ 2. Ночной спа ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 2</div><h1>Ночной спа</h1><p>Тёмный премиум-стиль как у дорогих спа-отелей. Главное — большое атмосферное фото.</p></div>
+    <div class="swatches"><span style="background:#131118"></span><span style="background:#3a2f4f"></span><span style="background:#c9a46a"></span><span style="background:#f3ede3"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v2">
+      <div class="hero">
+        <div class="photo">[ Фото интерьера салона ]</div>
+        <div class="nav"><span class="brand">EM.DEL.RELAXX</span><span class="burger"><svg class="i"><use href="#menu"/></svg></span></div>
+        <div class="hero-copy"><div class="eyebrow">Массажный салон</div><h2>Искусство <em>расслабления</em></h2></div>
+      </div>
+      <div class="body">
+        <p>Классический, расслабляющий и спортивный массаж в тишине и полумраке. Только вы и ваш мастер.</p>
+        <div class="btn gold">Записаться</div>
+        <div class="btn line"><svg class="wa"><use href="#wa"/></svg> WhatsApp</div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v2">
+      <div class="body" style="padding-top:30px">
+        <div class="eyebrow">Меню процедур</div>
+        <div class="title">Услуги</div>
+        <div class="row"><div class="t"><h4>Классический</h4><span class="dots"></span><span class="p">12 000 ₸</span></div><small>60 минут · спина, шея, плечи</small></div>
+        <div class="row"><div class="t"><h4>Расслабляющий</h4><span class="dots"></span><span class="p">16 000 ₸</span></div><small>90 минут · тёплые масла</small></div>
+        <div class="row"><div class="t"><h4>Спортивный</h4><span class="dots"></span><span class="p">14 000 ₸</span></div><small>60 минут · восстановление</small></div>
+        <div class="row"><div class="t"><h4>Абонемент на год</h4><span class="dots"></span><span class="p">[цена]</span></div><small>курс для вас и близких</small></div>
+        <div class="contact">
+          <div><svg class="i"><use href="#pin"/></svg> [Адрес салона]</div>
+          <div><svg class="i"><use href="#clock"/></svg> Пн–Вс 09:00–21:00</div>
+          <div><svg class="i"><use href="#phone"/></svg> [Телефон]</div>
+        </div>
+      </div>
+    </div></div><div class="cap">Меню услуг как в ресторане</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Настроение</b>Дорого, загадочно, «вечерний» отдых. Хорошо для премиум-цен и мужской аудитории тоже.</div>
+    <div class="note"><b>Что нужно</b>Одно-два качественных тёмных фото интерьера — без них стиль теряет силу.</div>
+    <div class="note"><b>Работы</b>Средне: новая палитра и первый экран, логика остаётся та же.</div>
+  </div>
+</section>
+
+<!-- ============ 3. Минимализм ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 3</div><h1>Чистый минимализм</h1><p>Много воздуха, крупный жирный шрифт, натуральный зелёный акцент. Современно и строго.</p></div>
+    <div class="swatches"><span style="background:#fff"></span><span style="background:#111"></span><span style="background:#7d9a83"></span><span style="background:#eef2ee"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v3">
+      <div class="nav"><span>em.del.relaxx</span><span>Войти</span></div>
+      <div class="body">
+        <h2>Массаж,<br>после которого<br><span>легко.</span></h2>
+        <div class="photo">[ Фото процедуры ]</div>
+        <p>Опытные мастера, натуральные масла и тишина. Запись онлайн за минуту.</p>
+        <div class="btns"><div class="btn black">Записаться <svg class="i"><use href="#arrow"/></svg></div><div class="btn out"><svg class="wa" style="color:#111"><use href="#wa"/></svg></div></div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v3">
+      <div class="body" style="padding-top:12px">
+        <span class="tag">Услуги</span>
+        <div class="title">Что мы делаем</div>
+        <div class="item"><span class="n">01</span><div><h4>Классический массаж</h4><small>60 мин</small></div><span class="p">12 000 ₸</span></div>
+        <div class="item"><span class="n">02</span><div><h4>Расслабляющий</h4><small>90 мин</small></div><span class="p">16 000 ₸</span></div>
+        <div class="item"><span class="n">03</span><div><h4>Спортивный</h4><small>60 мин</small></div><span class="p">14 000 ₸</span></div>
+        <div class="item" style="border-bottom:1px solid #e8e8e8"><span class="n">04</span><div><h4>Массаж лица</h4><small>30 мин</small></div><span class="p">8 000 ₸</span></div>
+        <div class="banner"><b>Абонемент на год</b><small>Курс массажа по выгодной цене — для вас и близких</small><div class="btn">Узнать условия</div></div>
+      </div>
+    </div></div><div class="cap">Услуги списком + блок абонемента</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Настроение</b>Современно, честно, «без лишнего». Похоже на сайты студий и wellness-брендов.</div>
+    <div class="note"><b>Что удобно</b>Читается быстрее всех: цены видны сразу, без карточек и украшений.</div>
+    <div class="note"><b>Работы</b>Средне: новая палитра и шрифт Manrope, упростить блоки.</div>
+  </div>
+</section>
+
+<!-- ============ 4. Тёплое приложение ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 4</div><h1>Тёплое приложение</h1><p>Выглядит как настоящее мобильное приложение: категории, карточки с «+», запись по окошкам, нижние вкладки.</p></div>
+    <div class="swatches"><span style="background:#f4ece3"></span><span style="background:#c8693f"></span><span style="background:#3a2a20"></span><span style="background:#ecdccb"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v4">
+      <div class="top"><div class="hello"><small>Добрый день</small><b>Em.Del.Relaxx</b></div><span class="ava"><svg class="i"><use href="#user"/></svg></span></div>
+      <div class="body">
+        <div class="promo"><h2>Время позаботиться о себе</h2><p>Запишитесь онлайн — свободные окошки на сегодня</p><span class="btn">Записаться <svg class="i"><use href="#arrow"/></svg></span></div>
+        <div class="chips"><span class="chip on">Все</span><span class="chip">Классика</span><span class="chip">Релакс</span><span class="chip">Спорт</span></div>
+        <div class="sec">Популярное <small>Все услуги</small></div>
+        <div class="svc"><span class="photo">ФОТО</span><div><h4>Классический массаж</h4><small>60 мин</small><span class="p">12 000 ₸</span></div><span class="plus"><svg class="i"><use href="#plus"/></svg></span></div>
+        <div class="svc"><span class="photo">ФОТО</span><div><h4>Расслабляющий</h4><small>90 мин</small><span class="p">16 000 ₸</span></div><span class="plus"><svg class="i"><use href="#plus"/></svg></span></div>
+      </div>
+      <div class="tabs"><span class="tab on"><svg class="i"><use href="#home"/></svg>Главная</span><span class="tab"><svg class="i"><use href="#cal"/></svg>Записи</span><span class="tab"><span class="fab"><svg class="i"><use href="#plus"/></svg></span></span><span class="tab"><svg class="i"><use href="#ticket"/></svg>Абонем.</span><span class="tab"><svg class="wa" style="width:16px;height:16px"><use href="#wa"/></svg>Чат</span></div>
+    </div></div><div class="cap">Главный экран</div></div>
+
+    <div><div class="phone"><div class="screen v4">
+      <div class="top"><div class="hello"><small>Шаг 2 из 3</small><b>Выберите время</b></div></div>
+      <div class="body">
+        <div class="svc" style="margin-top:4px"><span class="photo">ФОТО</span><div><h4>Классический массаж</h4><small>60 мин · мастер [Имя]</small><span class="p">12 000 ₸</span></div></div>
+        <div class="day"><div>Пн<b>3</b></div><div class="on">Вт<b>4</b></div><div>Ср<b>5</b></div><div>Чт<b>6</b></div><div>Пт<b>7</b></div></div>
+        <div class="slots">
+          <span class="slot">09:00</span><span class="slot busy">10:00</span><span class="slot">11:00</span>
+          <span class="slot busy">12:00</span><span class="slot on">13:00</span><span class="slot">14:00</span>
+          <span class="slot">15:00</span><span class="slot">16:00</span><span class="slot busy">17:00</span>
+          <span class="slot">18:00</span><span class="slot">19:00</span><span class="slot">20:00</span>
+        </div>
+        <div class="confirm">Записаться на 13:00 <svg class="i"><use href="#arrow"/></svg></div>
+      </div>
+      <div class="tabs"><span class="tab"><svg class="i"><use href="#home"/></svg>Главная</span><span class="tab on"><svg class="i"><use href="#cal"/></svg>Записи</span><span class="tab"><span class="fab"><svg class="i"><use href="#plus"/></svg></span></span><span class="tab"><svg class="i"><use href="#ticket"/></svg>Абонем.</span><span class="tab"><svg class="wa" style="width:16px;height:16px"><use href="#wa"/></svg>Чат</span></div>
+    </div></div><div class="cap">Запись по окошкам</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Настроение</b>Тёплое, дружелюбное, «домашнее». Клиенту кажется, что он в приложении.</div>
+    <div class="note"><b>Что удобно</b>Сайт и личный кабинет выглядят одинаково — одна логика для входа и записи.</div>
+    <div class="note"><b>Работы</b>Больше всего: переделать и лендинг, и экраны приложения.</div>
+  </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Em.Del.Relaxx — варианты 5–8</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&family=Prata&family=Unbounded:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; color: #1f1d2b; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 15mm 14mm 12mm; page-break-after: always; display: flex; flex-direction: column; background: #f4f3f7; overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+.num { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #7c5cbf; }
+.head h1 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; }
+.head p { font-size: 13px; color: #6b6880; margin-top: 4px; max-width: 430px; line-height: 1.5; }
+.swatches { display: flex; gap: 6px; }
+.swatches span { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,.1); }
+.phones { display: flex; justify-content: center; gap: 30px; }
+.phone { width: 318px; height: 668px; border-radius: 46px; padding: 10px; background: #1b1a20; box-shadow: 0 24px 50px -20px rgba(31,29,43,.45); flex-shrink: 0; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden; }
+.cap { text-align: center; font-size: 11px; color: #6b6880; margin-top: 10px; font-weight: 500; }
+.notes { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.note { background: #fff; border-radius: 12px; padding: 12px 14px; font-size: 11.5px; line-height: 1.5; color: #4b4860; }
+.note b { display: block; color: #1f1d2b; font-size: 12px; margin-bottom: 3px; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+svg.f { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+.photo { display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+
+/* ---------- Обложка ---------- */
+.cover { background: #faf7f2; justify-content: space-between; }
+.cover h1 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 60px; line-height: 1.02; margin-top: 30px; }
+.cover h1 em { color: #7c5cbf; }
+.cover .lead { font-size: 15px; color: #6b6880; margin-top: 18px; max-width: 520px; line-height: 1.6; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 26px; }
+.facts div { background: #fff; border-radius: 14px; padding: 14px; font-size: 12px; color: #6b6880; line-height: 1.45; }
+.facts b { display: block; font-size: 18px; color: #221d33; margin-bottom: 2px; }
+.toc { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.toc div { border-radius: 18px; padding: 20px; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between; }
+.toc b { font-size: 18px; }
+.toc small { font-size: 12px; opacity: .78; line-height: 1.45; }
+.toc .n { font-size: 12px; font-weight: 700; letter-spacing: .12em; opacity: .7; }
+
+/* ---------- 5. Салон + Школа ---------- */
+.v5 { background: #f6f1ea; color: #16213a; font-family: Inter, sans-serif; }
+.v5 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 12px; }
+.v5 .brand { font-family: Prata, serif; font-size: 16px; }
+.v5 .burger { width: 36px; height: 36px; border-radius: 50%; background: #16213a; color: #f6f1ea; display: flex; align-items: center; justify-content: center; }
+.v5 .seg { margin: 0 18px; display: grid; grid-template-columns: 1fr 1fr; background: #e9e0d3; border-radius: 99px; padding: 4px; }
+.v5 .seg span { text-align: center; padding: 9px 0; border-radius: 99px; font-size: 12.5px; font-weight: 600; color: #6c6457; }
+.v5 .seg .on { background: #16213a; color: #fff; }
+.v5 .body { padding: 0 18px; }
+.v5 h2 { font-family: Prata, serif; font-weight: 400; font-size: 32px; line-height: 1.12; margin: 20px 0 10px; }
+.v5 h2 em { font-style: normal; color: #b0864f; }
+.v5 p { font-size: 12.5px; line-height: 1.55; color: #5c5f6e; }
+.v5 .photo { height: 150px; border-radius: 20px; background: #e9e0d3; color: #a0927e; margin: 16px 0 0; }
+.v5 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 14px; font-weight: 600; font-size: 13.5px; margin-top: 10px; }
+.v5 .navy { background: #16213a; color: #fff; margin-top: 16px; }
+.v5 .out { border: 1.5px solid #16213a; }
+.v5 .title { font-family: Prata, serif; font-size: 24px; line-height: 1.15; margin: 14px 0 4px; }
+.v5 .course { position: relative; background: #fff; border-radius: 16px; padding: 11px 14px; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.v5 .course h4 { font-size: 14px; font-weight: 700; }
+.v5 .course small { font-size: 11px; color: #7c7f8c; }
+.v5 .course .p { font-family: Prata, serif; font-size: 16px; white-space: nowrap; }
+.v5 .course.vip { background: #16213a; color: #fff; }
+.v5 .course.vip small { color: #b9bfd0; }
+.v5 .course.vip .p { color: #e0bf8a; }
+.v5 .school { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 12px; border-radius: 12px; border: 1px dashed #c9b89c; font-size: 11px; color: #5c5f6e; }
+.v5 .school span { flex: 1; }
+.v5 .school b { color: #16213a; }
+.v5 .school svg { color: #b0864f; }
+.v5 .lvl { display: flex; gap: 3px; margin-bottom: 6px; }
+.v5 .lvl i { width: 14px; height: 4px; border-radius: 2px; background: #e9e0d3; }
+.v5 .lvl i.on { background: #b0864f; }
+
+/* ---------- 6. Доверие: рейтинг ---------- */
+.v6 { background: #fff; color: #10302f; font-family: Manrope, sans-serif; }
+.v6 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 8px; font-weight: 800; font-size: 14px; }
+.v6 .open { font-size: 11px; font-weight: 700; color: #0f6b5f; display: flex; align-items: center; gap: 5px; }
+.v6 .open i { width: 7px; height: 7px; border-radius: 50%; background: #1fae8a; }
+.v6 .body { padding: 0 18px; }
+.v6 .rating { margin-top: 12px; background: #eaf5f2; border-radius: 22px; padding: 18px; display: flex; gap: 14px; align-items: center; }
+.v6 .score { font-size: 48px; font-weight: 800; letter-spacing: -.04em; line-height: 1; color: #0f6b5f; }
+.v6 .stars { display: flex; gap: 2px; color: #f2a541; }
+.v6 .rating small { display: block; font-size: 11.5px; color: #4e6766; margin-top: 4px; line-height: 1.4; }
+.v6 h2 { font-size: 30px; font-weight: 800; letter-spacing: -.035em; line-height: 1.05; margin: 20px 0 10px; }
+.v6 p { font-size: 12.5px; line-height: 1.55; color: #4e6766; }
+.v6 .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.v6 .tags span { padding: 6px 11px; border-radius: 99px; border: 1px solid #cfe3de; font-size: 11px; font-weight: 600; }
+.v6 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 16px; font-weight: 800; font-size: 13.5px; }
+.v6 .bar { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; padding: 12px 14px 18px; background: #fff; box-shadow: 0 -10px 24px -16px rgba(16,48,47,.35); }
+.v6 .bar .btn { flex: 1; }
+.v6 .teal { background: #0f6b5f; color: #fff; }
+.v6 .coral { background: #ff7a59; color: #fff; flex: 0 0 50px !important; }
+.v6 .title { font-size: 24px; font-weight: 800; letter-spacing: -.03em; margin: 16px 0 10px; }
+.v6 .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #edf2f1; }
+.v6 .row h4 { font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.v6 .row small { font-size: 11px; color: #7b908f; }
+.v6 .row .p { font-weight: 800; font-size: 14px; white-space: nowrap; }
+.v6 .review { margin-top: 14px; background: #f6f8f8; border-radius: 18px; padding: 14px; }
+.v6 .review .who { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; }
+.v6 .review .ava { width: 28px; height: 28px; border-radius: 50%; background: #cfe3de; }
+.v6 .review .ln { height: 7px; border-radius: 4px; background: #dfe7e6; margin-top: 7px; }
+
+/* ---------- 7. Подарок ---------- */
+.v7 { background: #f7ebe7; color: #4a1f2b; font-family: Inter, sans-serif; }
+.v7 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 8px; }
+.v7 .brand { font-family: "Cormorant Garamond", serif; font-size: 20px; font-weight: 600; font-style: italic; }
+.v7 .bag { width: 38px; height: 38px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
+.v7 .body { padding: 0 18px; }
+.v7 .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: #b24a64; margin-top: 12px; }
+.v7 h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 40px; line-height: 1; margin: 8px 0 14px; }
+.v7 h2 em { color: #b24a64; }
+.v7 .cert { position: relative; height: 178px; border-radius: 20px; padding: 18px; color: #fff; overflow: hidden; background: #6b2238; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 18px 30px -18px rgba(74,31,43,.7); }
+.v7 .cert::before { content: ""; position: absolute; right: -50px; top: -50px; width: 170px; height: 170px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); }
+.v7 .cert::after { content: ""; position: absolute; right: -10px; top: -10px; width: 90px; height: 90px; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); }
+.v7 .cert small { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; opacity: .75; }
+.v7 .cert b { font-family: "Cormorant Garamond", serif; font-size: 30px; font-weight: 500; }
+.v7 .cert .bt { display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; opacity: .85; }
+.v7 p { font-size: 12.5px; line-height: 1.55; color: #7a5560; margin-top: 14px; }
+.v7 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 99px; font-weight: 600; font-size: 13.5px; margin-top: 10px; }
+.v7 .wine { background: #b24a64; color: #fff; margin-top: 16px; }
+.v7 .soft { background: #fff; color: #4a1f2b; }
+.v7 .title { font-family: "Cormorant Garamond", serif; font-size: 28px; font-weight: 500; margin: 20px 0 4px; }
+.v7 .lbl { font-size: 11px; font-weight: 600; color: #7a5560; margin: 14px 0 8px; }
+.v7 .amounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.v7 .amounts span { background: #fff; border-radius: 14px; padding: 10px 0; text-align: center; font-weight: 700; font-size: 13px; }
+.v7 .amounts .on { background: #4a1f2b; color: #fff; }
+.v7 .opt { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: 16px; padding: 12px; margin-top: 8px; font-size: 12.5px; }
+.v7 .opt b { display: block; font-size: 13px; }
+.v7 .opt small { color: #7a5560; font-size: 11px; }
+.v7 .opt .ic { width: 36px; height: 36px; border-radius: 12px; background: #f7ebe7; color: #b24a64; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.v7 .opt .p { margin-left: auto; font-weight: 700; white-space: nowrap; }
+
+/* ---------- 8. Вечер в городе ---------- */
+.v8 { background: #101410; color: #eef2e6; font-family: Manrope, sans-serif; }
+.v8 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 10px; }
+.v8 .brand { font-family: Unbounded, sans-serif; font-weight: 700; font-size: 13px; letter-spacing: -.01em; }
+.v8 .live { font-size: 10.5px; font-weight: 700; color: #101410; background: #c8f169; border-radius: 99px; padding: 5px 10px; }
+.v8 .body { padding: 0 18px; }
+.v8 h2 { font-family: Unbounded, sans-serif; font-weight: 800; font-size: 31px; line-height: 1.05; letter-spacing: -.03em; margin-top: 18px; text-transform: uppercase; }
+.v8 h2 span { color: #c8f169; }
+.v8 p { font-size: 12.5px; line-height: 1.55; color: #a9b3a0; margin-top: 12px; }
+.v8 .clock { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.v8 .clock div { background: #1b211b; border-radius: 18px; padding: 14px; }
+.v8 .clock small { font-size: 10.5px; color: #8b9682; display: block; }
+.v8 .clock b { font-family: Unbounded, sans-serif; font-size: 22px; font-weight: 700; }
+.v8 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: 16px; font-weight: 800; font-size: 13.5px; margin-top: 10px; }
+.v8 .lime { background: #c8f169; color: #101410; margin-top: 16px; }
+.v8 .dark { background: #1b211b; color: #eef2e6; }
+.v8 .map { position: relative; height: 196px; border-radius: 22px; background: #1b211b; overflow: hidden; margin-top: 16px; }
+.v8 .map .road { position: absolute; background: #273027; }
+.v8 .pin { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); width: 44px; height: 44px; border-radius: 50% 50% 50% 4px; rotate: -45deg; background: #c8f169; display: flex; align-items: center; justify-content: center; }
+.v8 .pin span { rotate: 45deg; width: 14px; height: 14px; border-radius: 50%; background: #101410; }
+.v8 .addr { background: #1b211b; border-radius: 18px; padding: 14px; margin-top: 8px; }
+.v8 .addr b { display: block; font-size: 14px; }
+.v8 .addr small { font-size: 11.5px; color: #8b9682; line-height: 1.5; display: block; margin-top: 3px; }
+.v8 .hint { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; padding-top: 10px; border-top: 1px solid #273027; font-size: 11.5px; color: #c8f169; }
+.v8 .slots { display: flex; gap: 6px; margin-top: 12px; }
+.v8 .slots span { flex: 1; text-align: center; background: #1b211b; border-radius: 12px; padding: 9px 0; font-weight: 700; font-size: 12px; }
+.v8 .slots .on { background: #c8f169; color: #101410; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8S10.5 4 8 4a2 2 0 0 0 0 4M12 8s1.5-4 4-4a2 2 0 0 1 0 4"/></symbol>
+  <symbol id="car" viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3M7 12h.01M17 12h.01"/></symbol>
+  <symbol id="cap" viewBox="0 0 24 24"><path d="M2 9 12 4l10 5-10 5Z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></symbol>
+  <symbol id="route" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8Z"/></symbol>
+  <symbol id="door" viewBox="0 0 24 24"><path d="M6 21V4h12v17M3 21h18M14 12h.01"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8Z"/></symbol>
+  <symbol id="wa" viewBox="0 0 24 24"><path d="M12.05.7C5.78.7.68 5.8.68 12.06c0 2 .52 3.96 1.52 5.68L.58 23.3l5.69-1.49a11.33 11.33 0 0 0 5.43 1.38h.01c6.26 0 11.36-5.1 11.36-11.36S18.32.7 12.05.7Zm5.42 13.68c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.66-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49 2.48 1.07 2.98.86 3.52.8.57-.09 1.75-.72 2-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></symbol>
+</svg>
+
+<!-- ============ Обложка ============ -->
+<section class="page cover">
+  <div>
+    <div class="num">Em.Del.Relaxx · варианты 5–8</div>
+    <h1>Ещё четыре идеи —<br><em>под ваш салон</em></h1>
+    <p class="lead">Эти варианты построены на том, чем Em.Del.Relaxx отличается от других салонов в 2ГИС: оценка 5.0, подарочные сертификаты, выезд на дом и работа до 23:00. Каждый вариант делает главным что-то одно. Обучение массажу будет на отдельном сайте — здесь на него ведёт только ссылка.</p>
+    <div class="facts">
+      <div><b>5.0 ★</b>148 оценок, 99 отзывов в 2ГИС</div>
+      <div><b>11:00–23:00</b>ежедневно, ЖК Gul-Ana, Скрябина 28 к2</div>
+      <div><b>8–25 тыс ₸</b>массаж · выезд на дом · сертификаты от 10 тыс ₸</div>
+    </div>
+  </div>
+  <div class="toc">
+    <div style="background:#f6f1ea;color:#16213a"><span class="n">ВАРИАНТ 5</span><div><b>Классика</b><br><small>Солидно и спокойно: тёмно-синий и золото, программы массажа карточками, ссылка на сайт школы</small></div></div>
+    <div style="background:#eaf5f2;color:#10302f"><span class="n">ВАРИАНТ 6</span><div><b>Доверие 5.0</b><br><small>Рейтинг и отзывы — первое, что видит человек. Честный прайс без украшений</small></div></div>
+    <div style="background:#6b2238;color:#fff"><span class="n">ВАРИАНТ 7</span><div><b>Подарок</b><br><small>Сертификаты и выездной массаж как главный продукт — для праздников и подарков</small></div></div>
+    <div style="background:#101410;color:#eef2e6"><span class="n">ВАРИАНТ 8</span><div><b>Вечер в городе</b><br><small>Смелый тёмный стиль: «открыто до 23:00», карта и как найти вход в цокольный этаж</small></div></div>
+  </div>
+  <p style="font-size:11px;color:#a3a0b5">Данные салона взяты из карточки 2ГИС (цены обновлены 30 марта 2026). Фото и тексты отзывов — заглушки: в проекте подставятся настоящие.</p>
+</section>
+
+<!-- ============ 5. Салон + Школа ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 5</div><h1>Классика</h1><p>Строгий «дорогой» стиль без лишнего: программы массажа понятными карточками по времени и зонам. Школа массажа — отдельный сайт, на него ведёт аккуратная ссылка внизу.</p></div>
+    <div class="swatches"><span style="background:#f6f1ea"></span><span style="background:#16213a"></span><span style="background:#b0864f"></span><span style="background:#e9e0d3"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v5">
+      <div class="nav"><span class="brand">Em.Del.Relaxx</span><span class="burger"><svg class="i"><use href="#menu"/></svg></span></div>
+      <div class="body">
+        <h2>Восстановление<br>с ног <em>до головы</em></h2>
+        <p>Тайский, оздоровительный, антицеллюлитный массаж, массаж лица и детский. Ежедневно с 11:00 до 23:00.</p>
+        <div class="photo">[ Фото кабинета ]</div>
+        <div class="btn navy">Записаться <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn out"><svg class="f" style="color:#25d366"><use href="#wa"/></svg> WhatsApp</div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v5">
+      <div class="nav"><span class="brand">Em.Del.Relaxx</span><span class="burger"><svg class="i"><use href="#menu"/></svg></span></div>
+      <div class="body">
+        <div class="title">Программы</div>
+        <p>Выберите зону и время — мастер подстроит технику под ваше самочувствие.</p>
+        <div class="course"><div><div class="lvl"><i class="on"></i><i></i><i></i><i></i></div><h4>Нижняя часть</h4><small>ноги и стопы</small></div><span class="p">8 000 ₸</span></div>
+        <div class="course"><div><div class="lvl"><i class="on"></i><i class="on"></i><i></i><i></i></div><h4>Верхняя часть</h4><small>спина, шея, голова и руки</small></div><span class="p">10 000 ₸</span></div>
+        <div class="course"><div><div class="lvl"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><h4>Общий массаж</h4><small>с ног до головы</small></div><span class="p">15 000 ₸</span></div>
+        <div class="course vip"><div><div class="lvl"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><h4>2 часа с ног до головы</h4><small>полная программа</small></div><span class="p">25 000 ₸</span></div>
+        <div class="btn navy">Записаться <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="school"><svg class="i"><use href="#cap"/></svg><span>Учитесь массажу? <b>Наша школа</b> — на отдельном сайте</span><svg class="i"><use href="#arrow"/></svg></div>
+      </div>
+    </div></div><div class="cap">Программы + ссылка на сайт школы</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Почему это вам</b>Ваши цены зависят от зоны и времени — карточки «от и до» читаются проще обычного прайса.</div>
+    <div class="note"><b>Настроение</b>Солидно и спокойно: тёмно-синий + бежевое золото, классический шрифт.</div>
+    <div class="note"><b>Работы</b>Средне: новая палитра и шрифт. Ссылку на сайт школы добавим, когда будет адрес.</div>
+  </div>
+</section>
+
+<!-- ============ 6. Доверие 5.0 ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 6</div><h1>Доверие 5.0</h1><p>Новый клиент сомневается — рейтинг 5.0 и 99 отзывов снимают сомнения за секунду. Поэтому они стоят выше заголовка.</p></div>
+    <div class="swatches"><span style="background:#fff"></span><span style="background:#0f6b5f"></span><span style="background:#ff7a59"></span><span style="background:#eaf5f2"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v6">
+      <div class="nav"><span>Em.Del.Relaxx</span><span class="open"><i></i>Открыто до 23:00</span></div>
+      <div class="body">
+        <div class="rating"><span class="score">5.0</span><div><div class="stars"><svg class="f"><use href="#star"/></svg><svg class="f"><use href="#star"/></svg><svg class="f"><use href="#star"/></svg><svg class="f"><use href="#star"/></svg><svg class="f"><use href="#star"/></svg></div><small>148 оценок и 99 отзывов<br>в 2ГИС</small></div></div>
+        <h2>Массаж, за который ставят пятёрки</h2>
+        <p>Массажный салон в ЖК Gul-Ana. Подберём массаж под самочувствие — от лёгкого релакса до глубокой проработки.</p>
+        <div class="tags"><span>Тайский</span><span>Оздоровительный</span><span>Антицеллюлитный</span><span>Массаж лица</span><span>Детский</span></div>
+      </div>
+      <div class="bar"><div class="btn teal">Записаться онлайн</div><div class="btn coral"><svg class="f" style="width:20px;height:20px"><use href="#wa"/></svg></div></div>
+    </div></div><div class="cap">Первый экран: рейтинг выше заголовка</div></div>
+
+    <div><div class="phone"><div class="screen v6">
+      <div class="body" style="padding-top:18px">
+        <div class="title">Цены</div>
+        <div class="row"><div><h4>Общий массаж</h4><small>с ног до головы</small></div><span class="p">15 000 ₸</span></div>
+        <div class="row"><div><h4>Массаж верхней части</h4><small>спина, шея, голова и руки</small></div><span class="p">10 000 ₸</span></div>
+        <div class="row"><div><h4>Массаж нижней части</h4><small>ноги и стопы</small></div><span class="p">8 000 ₸</span></div>
+        <div class="row"><div><h4>2 часа с ног до головы</h4><small>полная программа</small></div><span class="p">25 000 ₸</span></div>
+        <div class="row"><div><h4>Выезд на дом</h4><small>мастер приедет к вам</small></div><span class="p">10 000 ₸</span></div>
+        <div class="review"><div class="who"><span class="ava"></span>[Отзыв из 2ГИС]<span class="stars" style="margin-left:auto"><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg></span></div><div class="ln"></div><div class="ln" style="width:70%"></div></div>
+      </div>
+      <div class="bar"><div class="btn teal">Записаться онлайн</div><div class="btn coral"><svg class="f" style="width:20px;height:20px"><use href="#wa"/></svg></div></div>
+    </div></div><div class="cap">Честный прайс + отзыв под ним</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Почему это вам</b>5.0 при 148 оценках — сильнейший аргумент салона. Его стоит показывать первым.</div>
+    <div class="note"><b>Настроение</b>Свежо, чисто, «медицински-надёжно»: белый, бирюзовый, коралловая кнопка WhatsApp.</div>
+    <div class="note"><b>Работы</b>Легко-средне. Рейтинг и число отзывов можно обновлять вручную в настройках.</div>
+  </div>
+</section>
+
+<!-- ============ 7. Подарок ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 7</div><h1>Подарок</h1><p>Сертификат на массаж — лучший подарок на 8 Марта, день рождения и праздники. Этот вариант продаёт сертификаты и выезд на дом.</p></div>
+    <div class="swatches"><span style="background:#f7ebe7"></span><span style="background:#b24a64"></span><span style="background:#6b2238"></span><span style="background:#4a1f2b"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v7">
+      <div class="nav"><span class="brand">Em.Del.Relaxx</span><span class="bag"><svg class="i"><use href="#gift"/></svg></span></div>
+      <div class="body">
+        <div class="eyebrow">Подарочный сертификат</div>
+        <h2>Подарите<br><em>час отдыха</em></h2>
+        <div class="cert"><small>Сертификат на массаж</small><b>Em.Del.Relaxx</b><div class="bt"><span>номинал от 10 000 ₸</span><span>Алматы</span></div></div>
+        <p>Красивый сертификат на любую сумму — в салоне или онлайн. Получатель сам выберет удобное время.</p>
+        <div class="btn wine">Выбрать сертификат <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn soft">Записаться на массаж</div>
+      </div>
+    </div></div><div class="cap">Первый экран: сертификат в центре</div></div>
+
+    <div><div class="phone"><div class="screen v7">
+      <div class="body" style="padding-top:18px">
+        <div class="title">Соберите подарок</div>
+        <div class="lbl">Номинал</div>
+        <div class="amounts"><span>10 000 ₸</span><span class="on">15 000 ₸</span><span>25 000 ₸</span></div>
+        <div class="lbl">Или конкретная программа</div>
+        <div class="opt"><span class="ic"><svg class="i"><use href="#gift"/></svg></span><div><b>Общий массаж</b><small>с ног до головы</small></div><span class="p">15 000 ₸</span></div>
+        <div class="opt"><span class="ic"><svg class="i"><use href="#clock"/></svg></span><div><b>2 часа релакса</b><small>полная программа</small></div><span class="p">25 000 ₸</span></div>
+        <div class="opt"><span class="ic"><svg class="i"><use href="#car"/></svg></span><div><b>Выезд на дом</b><small>мастер приедет сам</small></div><span class="p">10 000 ₸</span></div>
+        <div class="btn wine">Оформить через WhatsApp <svg class="i"><use href="#arrow"/></svg></div>
+      </div>
+    </div></div><div class="cap">Выбор номинала или программы</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Почему это вам</b>Сертификаты уже есть в прайсе 2ГИС. Подарок покупают быстрее, чем массаж для себя.</div>
+    <div class="note"><b>Настроение</b>Нежно и празднично: пудровый фон, бордовый, курсивный шрифт.</div>
+    <div class="note"><b>Работы</b>Средне. Оплату можно не делать — заявка уходит в WhatsApp.</div>
+  </div>
+</section>
+
+<!-- ============ 8. Вечер в городе ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 8</div><h1>Вечер в городе</h1><p>Салон работает до 23:00 — можно прийти после работы. Смелый, молодёжный стиль и подсказка, как найти вход в цокольный этаж.</p></div>
+    <div class="swatches"><span style="background:#101410"></span><span style="background:#1b211b"></span><span style="background:#c8f169"></span><span style="background:#eef2e6"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v8">
+      <div class="nav"><span class="brand">EM.DEL.RELAXX</span><span class="live">Открыто</span></div>
+      <div class="body">
+        <h2>После работы —<br><span>на массаж</span></h2>
+        <p>Снимем усталость после длинного дня. Работаем каждый день, без выходных.</p>
+        <div class="clock"><div><small>открываемся</small><b>11:00</b></div><div><small>последний гость до</small><b>23:00</b></div></div>
+        <div class="slots"><span>19:00</span><span class="on">20:00</span><span>21:00</span></div>
+        <div class="btn lime">Записаться на вечер <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn dark"><svg class="f" style="color:#25d366"><use href="#wa"/></svg> Написать</div>
+      </div>
+    </div></div><div class="cap">Первый экран: ближайшие вечерние окошки</div></div>
+
+    <div><div class="phone"><div class="screen v8">
+      <div class="body" style="padding-top:22px">
+        <h2 style="font-size:24px;margin-top:0">Как нас <span>найти</span></h2>
+        <div class="map">
+          <span class="road" style="left:0;right:0;top:60%;height:14px"></span>
+          <span class="road" style="top:0;bottom:0;left:30%;width:12px"></span>
+          <span class="road" style="top:0;bottom:0;left:72%;width:8px"></span>
+          <span class="road" style="left:0;right:0;top:22%;height:7px"></span>
+          <span class="pin"><span></span></span>
+        </div>
+        <div class="addr"><b>ЖК Gul-Ana, ул. Скрябина, 28 к2</b><small>Жетысуский район, Алматы</small>
+          <div class="hint"><svg class="i"><use href="#door"/></svg> Цокольный этаж — [фото входа и подсказка, как пройти]</div></div>
+        <div class="btn lime"><svg class="i"><use href="#route"/></svg> Маршрут в 2ГИС</div>
+        <div class="btn dark"><svg class="i"><use href="#phone"/></svg> Позвонить</div>
+      </div>
+    </div></div><div class="cap">Карта, адрес и подсказка про вход</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Почему это вам</b>Работа до 23:00 — редкость. А вход в цокольный этаж новые клиенты часто ищут, подсказка экономит звонки.</div>
+    <div class="note"><b>Настроение</b>Дерзко и современно: чёрный + неоновый лайм, широкий шрифт Unbounded.</div>
+    <div class="note"><b>Работы</b>Средне. Кнопка «Маршрут» ведёт прямо в карточку 2ГИС.</div>
+  </div>
+</section>
+</body>
+</html>

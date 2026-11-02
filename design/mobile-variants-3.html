@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Em.Del.Relaxx — варианты 9–11</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,500;1,7..72,400&family=Lora:ital,wght@0,500;0,600;1,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; color: #2b2925; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 15mm 14mm 12mm; page-break-after: always; display: flex; flex-direction: column; background: #efede8; overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+.head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+.num { font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: #7a7266; }
+.head h1 { font-size: 30px; font-weight: 700; letter-spacing: -.02em; margin-top: 4px; }
+.head p { font-size: 13px; color: #625c53; margin-top: 4px; max-width: 430px; line-height: 1.5; }
+.swatches { display: flex; gap: 6px; }
+.swatches span { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(0,0,0,.1); }
+.phones { display: flex; justify-content: center; gap: 30px; }
+.phone { width: 318px; height: 668px; border-radius: 46px; padding: 10px; background: #2a2826; box-shadow: 0 24px 50px -24px rgba(43,41,37,.45); flex-shrink: 0; }
+.screen { position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden; }
+.cap { text-align: center; font-size: 11px; color: #625c53; margin-top: 10px; font-weight: 500; }
+.notes { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.note { background: #f7f5f1; border-radius: 12px; padding: 12px 14px; font-size: 11.5px; line-height: 1.5; color: #4f4a43; }
+.note b { display: block; color: #2b2925; font-size: 12px; margin-bottom: 3px; }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+svg.f { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+.photo { display: flex; align-items: center; justify-content: center; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+
+/* ---------- Обложка ---------- */
+.cover { background: #f1eee8; justify-content: space-between; }
+.cover h1 { font-family: Lora, serif; font-weight: 500; font-size: 52px; line-height: 1.08; margin-top: 28px; color: #2f3a33; }
+.cover h1 em { color: #5f7d66; }
+.cover .lead { font-size: 15px; color: #5c5850; margin-top: 16px; max-width: 540px; line-height: 1.65; }
+.rules { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; }
+.rules div { background: #f8f6f2; border-radius: 16px; padding: 14px 16px; font-size: 12px; color: #5c5850; line-height: 1.5; }
+.rules b { display: block; font-size: 13.5px; color: #2b2925; margin-bottom: 3px; }
+.toc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.toc div { border-radius: 18px; padding: 18px; min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; }
+.toc b { font-size: 17px; }
+.toc small { font-size: 11.5px; opacity: .85; line-height: 1.45; }
+.toc .n { font-size: 11px; font-weight: 700; letter-spacing: .12em; opacity: .75; }
+
+/* ---------- 9. Шалфей и лён ---------- */
+.v9 { background: #f3f0e8; color: #2f3a33; font-family: Manrope, sans-serif; }
+.v9 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 10px; }
+.v9 .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px; }
+.v9 .mark { width: 30px; height: 30px; border-radius: 10px; background: #dfe5d8; color: #5f7d66; display: flex; align-items: center; justify-content: center; }
+.v9 .icon-btn { width: 40px; height: 40px; border-radius: 14px; background: #faf8f3; display: flex; align-items: center; justify-content: center; color: #4a5a4f; }
+.v9 .body { padding: 0 18px; }
+.v9 .photo { height: 168px; border-radius: 26px; background: #e3e8dc; color: #6f8574; margin-top: 6px; position: relative; }
+.v9 .badge { position: absolute; left: 12px; bottom: 12px; display: flex; align-items: center; gap: 6px; background: #faf8f3; border-radius: 99px; padding: 6px 10px; font-size: 11px; font-weight: 700; color: #2f3a33; letter-spacing: 0; text-transform: none; }
+.v9 .badge i { width: 7px; height: 7px; border-radius: 50%; background: #6f9a77; }
+.v9 h2 { font-family: Lora, serif; font-weight: 500; font-size: 30px; line-height: 1.12; margin: 18px 0 8px; }
+.v9 h2 em { color: #5f7d66; }
+.v9 p { font-size: 13px; line-height: 1.6; color: #56625a; }
+.v9 .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.v9 .quick div { background: #faf8f3; border-radius: 16px; padding: 11px 12px; font-size: 11px; color: #56625a; }
+.v9 .quick b { display: block; font-size: 13px; color: #2f3a33; }
+.v9 .dock { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 8px; padding: 12px 14px 18px; background: #f3f0e8; border-top: 1px solid #e4e0d5; }
+.v9 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 16px; font-weight: 700; font-size: 13.5px; }
+.v9 .sage { flex: 1; background: #57745e; color: #f8f7f2; }
+.v9 .round { width: 50px; height: 50px; border-radius: 16px; background: #faf8f3; color: #4f8a5b; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.v9 .title { font-family: Lora, serif; font-weight: 500; font-size: 26px; margin: 4px 0 12px; }
+.v9 .chips { display: flex; gap: 6px; margin-bottom: 12px; }
+.v9 .chip { padding: 8px 12px; border-radius: 99px; background: #faf8f3; font-size: 11.5px; font-weight: 600; color: #56625a; }
+.v9 .chip.on { background: #2f3a33; color: #f3f0e8; }
+.v9 .svc { background: #faf8f3; border-radius: 20px; padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+.v9 .svc .ic { width: 40px; height: 40px; border-radius: 13px; background: #e3e8dc; color: #5f7d66; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.v9 .svc div { flex: 1; }
+.v9 .svc h4 { font-size: 13.5px; font-weight: 700; }
+.v9 .svc small { font-size: 11px; color: #6a756d; }
+.v9 .svc .p { font-weight: 800; font-size: 13.5px; white-space: nowrap; }
+
+/* ---------- 10. Мокко и камень ---------- */
+.v10 { background: #efe9e2; color: #3b302a; font-family: Inter, sans-serif; }
+.v10 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 10px; }
+.v10 .brand { font-family: Literata, serif; font-size: 16px; font-weight: 500; }
+.v10 .ghost { border: 1px solid #d6cbbf; border-radius: 99px; padding: 8px 14px; font-size: 12px; font-weight: 500; }
+.v10 .body { padding: 0 18px; }
+.v10 .eyebrow { font-size: 10.5px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: #7d5f4b; margin-top: 14px; }
+.v10 h2 { font-family: Literata, serif; font-weight: 400; font-size: 33px; line-height: 1.12; margin: 10px 0 12px; letter-spacing: -.01em; }
+.v10 h2 em { color: #7d5f4b; }
+.v10 p { font-size: 13px; line-height: 1.6; color: #5e534b; }
+.v10 .duo { display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px; margin-top: 16px; }
+.v10 .duo .photo { height: 128px; border-radius: 22px; background: #ddd2c6; color: #8b7a6b; }
+.v10 .stat { background: #f8f4ef; border-radius: 22px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between; }
+.v10 .stat b { font-family: Literata, serif; font-weight: 500; font-size: 26px; }
+.v10 .stat small { font-size: 11px; color: #6e6158; line-height: 1.35; }
+.v10 .stars { display: flex; gap: 1px; color: #b98c5e; }
+.v10 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 99px; font-weight: 600; font-size: 13.5px; margin-top: 10px; }
+.v10 .mocha { background: #8a6a55; color: #fbf8f4; margin-top: 16px; }
+.v10 .soft { background: #f8f4ef; color: #3b302a; }
+.v10 .soft svg { color: #3f8a52; }
+.v10 .title { font-family: Literata, serif; font-weight: 400; font-size: 25px; margin: 8px 0 4px; }
+.v10 .sel { background: #f8f4ef; border-radius: 20px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.v10 .sel b { display: block; font-size: 13.5px; font-weight: 600; }
+.v10 .sel small { font-size: 11px; color: #6e6158; }
+.v10 .sel span { font-size: 12px; font-weight: 600; color: #7d5f4b; }
+.v10 .lbl { font-size: 11.5px; font-weight: 600; color: #6e6158; margin: 14px 0 8px; display: flex; justify-content: space-between; }
+.v10 .days { display: flex; gap: 6px; }
+.v10 .days div { flex: 1; background: #f8f4ef; border-radius: 16px; padding: 8px 0; text-align: center; font-size: 10.5px; color: #6e6158; }
+.v10 .days b { display: block; font-size: 15px; font-weight: 600; color: #3b302a; }
+.v10 .days .on { background: #3b302a; color: #d9cfc4; }
+.v10 .days .on b { color: #f8f4ef; }
+.v10 .slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.v10 .slot { background: #f8f4ef; border-radius: 14px; padding: 10px 0; text-align: center; font-size: 12.5px; font-weight: 600; }
+.v10 .slot.busy { background: transparent; color: #857769; border: 1px solid #ddd2c6; }
+.v10 .slot.on { background: #8a6a55; color: #fbf8f4; }
+.v10 .sum { margin-top: 14px; background: #e6ddd3; border-radius: 18px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5e534b; }
+.v10 .sum b { font-size: 15px; color: #3b302a; }
+
+/* ---------- 11. Мягкие сумерки ---------- */
+.v11 { background: #23211f; color: #ece6dc; font-family: Manrope, sans-serif; }
+.v11 .nav { display: flex; justify-content: space-between; align-items: center; padding: 22px 18px 10px; }
+.v11 .brand { font-family: "Cormorant Garamond", serif; font-size: 21px; font-weight: 600; }
+.v11 .icon-btn { width: 40px; height: 40px; border-radius: 14px; background: #2e2b28; display: flex; align-items: center; justify-content: center; color: #cfc6b8; }
+.v11 .body { padding: 0 18px; }
+.v11 .photo { height: 200px; border-radius: 28px; background: #34302c; color: #8f877b; margin-top: 4px; }
+.v11 .eyebrow { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: #c8a97a; margin-top: 18px; }
+.v11 .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: #9fb59a; }
+.v11 h2 { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 36px; line-height: 1.05; margin: 8px 0 10px; }
+.v11 h2 em { color: #c8a97a; }
+.v11 p { font-size: 13px; line-height: 1.6; color: #b5ac9f; }
+.v11 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; border-radius: 18px; font-weight: 700; font-size: 13.5px; margin-top: 10px; }
+.v11 .brass { background: #c8a97a; color: #23211f; margin-top: 16px; }
+.v11 .dim { background: #2e2b28; color: #ece6dc; }
+.v11 .dim svg { color: #7fc48e; }
+.v11 .title { font-family: "Cormorant Garamond", serif; font-weight: 500; font-size: 30px; margin: 4px 0 12px; }
+.v11 .svc { background: #2e2b28; border-radius: 20px; padding: 14px 16px; margin-bottom: 8px; }
+.v11 .svc .t { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.v11 .svc h4 { font-size: 14px; font-weight: 700; }
+.v11 .svc .p { color: #d9bd92; font-weight: 700; font-size: 14px; white-space: nowrap; }
+.v11 .svc small { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #a39a8d; margin-top: 4px; }
+.v11 .info { margin-top: 12px; border: 1px solid #3a3632; border-radius: 20px; padding: 6px 14px; }
+.v11 .info div { display: flex; gap: 10px; align-items: center; font-size: 12px; padding: 9px 0; color: #d6cec2; }
+.v11 .info div + div { border-top: 1px solid #3a3632; }
+.v11 .info svg { color: #c8a97a; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+  <symbol id="phone" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></symbol>
+  <symbol id="menu" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+  <symbol id="leaf" viewBox="0 0 24 24"><path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19 13 11"/></symbol>
+  <symbol id="hand" viewBox="0 0 24 24"><path d="M4 14c2 4 5 6 9 6h3c2 0 4-1 5-3l1-4"/><path d="M11 17h4a2 2 0 0 0 0-4H9c-1 0-2-.5-3-1l-2-2"/></symbol>
+  <symbol id="car" viewBox="0 0 24 24"><path d="M5 16V11l2-5h10l2 5v5M3 16h18M7 19v-3M17 19v-3"/></symbol>
+  <symbol id="gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8h14v-8M12 8v12M12 8S10.5 4 8 4a2 2 0 0 0 0 4M12 8s1.5-4 4-4a2 2 0 0 1 0 4"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8Z"/></symbol>
+  <symbol id="moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></symbol>
+  <symbol id="wa" viewBox="0 0 24 24"><path d="M12.05.7C5.78.7.68 5.8.68 12.06c0 2 .52 3.96 1.52 5.68L.58 23.3l5.69-1.49a11.33 11.33 0 0 0 5.43 1.38h.01c6.26 0 11.36-5.1 11.36-11.36S18.32.7 12.05.7Zm5.42 13.68c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.26-.46-2.4-1.48-.88-.79-1.48-1.76-1.66-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49 2.48 1.07 2.98.86 3.52.8.57-.09 1.75-.72 2-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35Z"/></symbol>
+</svg>
+
+<!-- ============ Обложка ============ -->
+<section class="page cover">
+  <div>
+    <div class="num">Em.Del.Relaxx · варианты 9–11</div>
+    <h1>Спокойно для глаз,<br><em>приятно</em> для души</h1>
+    <p class="lead">Три варианта в стиле «комфорт, удобство, стильность». Цвета мягкие и приглушённые, но тёплые и живые — не яркие и не тусклые. Сайт приятно листать и днём, и вечером в постели.</p>
+    <div class="rules">
+      <div><b>Нет чисто-белого фона</b>Льняной, каменный и тёплый тёмный фон — экран не «слепит».</div>
+      <div><b>Нет резкого чёрного</b>Текст тёмно-зелёный, кофейный или кремовый: мягко, но чётко читается.</div>
+      <div><b>Приглушённые акценты</b>Шалфей, мокко, латунь — без кислотных и неоновых цветов.</div>
+      <div><b>Удобно пальцу</b>Крупные кнопки внизу экрана, текст 13–15px, много воздуха между блоками.</div>
+    </div>
+  </div>
+  <div class="toc">
+    <div style="background:#f3f0e8;color:#2f3a33;border:1px solid #e1ddd2"><span class="n">ВАРИАНТ 9</span><div><b>Шалфей и лён</b><br><small>Светлый, природный, свежий. Зелёный — самый спокойный цвет для глаз</small></div></div>
+    <div style="background:#efe9e2;color:#3b302a;border:1px solid #ddd2c6"><span class="n">ВАРИАНТ 10</span><div><b>Мокко и камень</b><br><small>Тёплый бежевый и кофейный — уютно и дорого, как в хорошем спа</small></div></div>
+    <div style="background:#23211f;color:#ece6dc"><span class="n">ВАРИАНТ 11</span><div><b>Мягкие сумерки</b><br><small>Тёплая тёмная тема без чёрного — для вечера, глаза отдыхают</small></div></div>
+  </div>
+  <p style="font-size:11px;color:#7a7266">Данные салона из 2ГИС. Фото — заглушки, в проекте будут настоящие. Все тексты проверены на контраст для удобного чтения.</p>
+</section>
+
+<!-- ============ 9. Шалфей и лён ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 9</div><h1>Шалфей и лён</h1><p>Льняной фон, мягкий зелёный шалфей и тёмно-зелёный текст вместо чёрного. Ощущение свежести и природы, ничего не режет глаз.</p></div>
+    <div class="swatches"><span style="background:#f3f0e8"></span><span style="background:#e3e8dc"></span><span style="background:#5f7d66"></span><span style="background:#2f3a33"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v9">
+      <div class="nav"><span class="brand"><span class="mark"><svg class="i"><use href="#leaf"/></svg></span>Em.Del.Relaxx</span><span class="icon-btn"><svg class="i"><use href="#menu"/></svg></span></div>
+      <div class="body">
+        <div class="photo">[ Фото кабинета ]<span class="badge"><i></i>Открыто до 23:00</span></div>
+        <h2>Мягкое <em>восстановление</em> для тела</h2>
+        <p>Тайский, оздоровительный и антицеллюлитный массаж, массаж лица и детский — в тишине ЖК Gul-Ana.</p>
+        <div class="quick"><div><b>5.0 ★ в 2ГИС</b>148 оценок</div><div><b>Выезд на дом</b>от 10 000 ₸</div></div>
+      </div>
+      <div class="dock"><div class="btn sage">Записаться <svg class="i"><use href="#arrow"/></svg></div><span class="round"><svg class="f" style="width:22px;height:22px"><use href="#wa"/></svg></span></div>
+    </div></div><div class="cap">Первый экран + кнопки внизу</div></div>
+
+    <div><div class="phone"><div class="screen v9">
+      <div class="body" style="padding-top:26px">
+        <div class="title">Услуги</div>
+        <div class="chips"><span class="chip on">В салоне</span><span class="chip">Выезд</span><span class="chip">Подарок</span></div>
+        <div class="svc"><span class="ic"><svg class="i"><use href="#hand"/></svg></span><div><h4>Общий массаж</h4><small>с ног до головы</small></div><span class="p">15 000 ₸</span></div>
+        <div class="svc"><span class="ic"><svg class="i"><use href="#hand"/></svg></span><div><h4>Верхняя часть</h4><small>спина, шея, голова, руки</small></div><span class="p">10 000 ₸</span></div>
+        <div class="svc"><span class="ic"><svg class="i"><use href="#hand"/></svg></span><div><h4>Нижняя часть</h4><small>ноги и стопы</small></div><span class="p">8 000 ₸</span></div>
+        <div class="svc"><span class="ic"><svg class="i"><use href="#clock"/></svg></span><div><h4>2 часа с ног до головы</h4><small>полная программа</small></div><span class="p">25 000 ₸</span></div>
+      </div>
+      <div class="dock"><div class="btn sage">Выбрать время <svg class="i"><use href="#arrow"/></svg></div><span class="round"><svg class="f" style="width:22px;height:22px"><use href="#wa"/></svg></span></div>
+    </div></div><div class="cap">Услуги с фильтром «салон / выезд / подарок»</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Для глаз</b>Зелёный — самый спокойный цвет. Фон льняной, а не белый, текст тёмно-зелёный, а не чёрный.</div>
+    <div class="note"><b>Удобство</b>Вкладки «салон / выезд / подарок» — человек сразу видит своё, без длинного прайса.</div>
+    <div class="note"><b>Стиль</b>Природно и свежо, как у эко-спа. Шрифты Lora + Manrope.</div>
+  </div>
+</section>
+
+<!-- ============ 10. Мокко и камень ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 10</div><h1>Мокко и камень</h1><p>Тёплый каменный фон, кофейные акценты и мягкий книжный шрифт. Уютно и дорого, и при этом всё очень понятно.</p></div>
+    <div class="swatches"><span style="background:#efe9e2"></span><span style="background:#ddd2c6"></span><span style="background:#8a6a55"></span><span style="background:#3b302a"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v10">
+      <div class="nav"><span class="brand">Em.Del.Relaxx</span><span class="ghost">Войти</span></div>
+      <div class="body">
+        <div class="eyebrow">Массажный салон · Алматы</div>
+        <h2>Час тишины<br>и <em>заботы о себе</em></h2>
+        <p>Подберём массаж под ваше самочувствие: от лёгкого релакса до глубокой проработки спины.</p>
+        <div class="duo"><div class="photo">[ Фото ]</div><div class="stat"><div class="stars"><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg><svg class="f" style="width:12px"><use href="#star"/></svg></div><b>5.0</b><small>99 отзывов<br>в 2ГИС</small></div></div>
+        <div class="btn mocha">Записаться онлайн <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn soft"><svg class="f"><use href="#wa"/></svg> Написать в WhatsApp</div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v10">
+      <div class="body" style="padding-top:26px">
+        <div class="title">Запись</div>
+        <div class="sel"><div><b>Общий массаж</b><small>с ног до головы · 15 000 ₸</small></div><span>Изменить</span></div>
+        <div class="lbl"><span>Выберите день</span><span>Октябрь</span></div>
+        <div class="days"><div>Пн<b>27</b></div><div class="on">Вт<b>28</b></div><div>Ср<b>29</b></div><div>Чт<b>30</b></div><div>Пт<b>31</b></div></div>
+        <div class="lbl"><span>Свободное время</span></div>
+        <div class="slots">
+          <span class="slot">11:00</span><span class="slot busy">12:00</span><span class="slot">14:00</span>
+          <span class="slot">16:00</span><span class="slot busy">18:00</span><span class="slot on">19:00</span>
+          <span class="slot">20:00</span><span class="slot">21:00</span><span class="slot busy">22:00</span>
+        </div>
+        <div class="sum"><span>Вт, 28 октября · 19:00</span><b>15 000 ₸</b></div>
+        <div class="btn mocha" style="margin-top:12px">Подтвердить запись</div>
+      </div>
+    </div></div><div class="cap">Запись: день и время в один экран</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Для глаз</b>Каменный фон и кофейный текст — мягкий контраст без бликов, как бумага в хорошей книге.</div>
+    <div class="note"><b>Удобство</b>Запись в одном экране: услуга → день → время → итог. Занятые часы видно сразу.</div>
+    <div class="note"><b>Стиль</b>Уютная «дорогая» классика. Шрифты Literata + Inter.</div>
+  </div>
+</section>
+
+<!-- ============ 11. Мягкие сумерки ============ -->
+<section class="page">
+  <div class="head">
+    <div><div class="num">Вариант 11</div><h1>Мягкие сумерки</h1><p>Тёмная тема без чёрного: тёплый графит, кремовый текст и приглушённая латунь. Можно сделать второй темой к варианту 9 или 10 — включается сама вечером.</p></div>
+    <div class="swatches"><span style="background:#23211f"></span><span style="background:#2e2b28"></span><span style="background:#c8a97a"></span><span style="background:#ece6dc"></span></div>
+  </div>
+  <div class="phones">
+    <div><div class="phone"><div class="screen v11">
+      <div class="nav"><span class="brand">Em.Del.Relaxx</span><span class="icon-btn"><svg class="i"><use href="#moon"/></svg></span></div>
+      <div class="body">
+        <div class="photo">[ Фото в тёплом свете ]</div>
+        <div class="eyebrow"><i></i>Открыто сегодня до 23:00</div>
+        <h2>Отдых, который<br><em>начинается вечером</em></h2>
+        <p>Массаж после длинного дня — в тёплом полумраке, без суеты.</p>
+        <div class="btn brass">Записаться <svg class="i"><use href="#arrow"/></svg></div>
+        <div class="btn dim"><svg class="f"><use href="#wa"/></svg> WhatsApp</div>
+      </div>
+    </div></div><div class="cap">Первый экран</div></div>
+
+    <div><div class="phone"><div class="screen v11">
+      <div class="body" style="padding-top:26px">
+        <div class="title">Программы</div>
+        <div class="svc"><div class="t"><h4>Общий массаж</h4><span class="p">15 000 ₸</span></div><small><svg class="i" style="width:13px;height:13px"><use href="#hand"/></svg>с ног до головы</small></div>
+        <div class="svc"><div class="t"><h4>2 часа с ног до головы</h4><span class="p">25 000 ₸</span></div><small><svg class="i" style="width:13px;height:13px"><use href="#clock"/></svg>полная программа</small></div>
+        <div class="svc"><div class="t"><h4>Выезд на дом</h4><span class="p">10 000 ₸</span></div><small><svg class="i" style="width:13px;height:13px"><use href="#car"/></svg>мастер приедет к вам</small></div>
+        <div class="svc"><div class="t"><h4>Подарочный сертификат</h4><span class="p">от 10 000 ₸</span></div><small><svg class="i" style="width:13px;height:13px"><use href="#gift"/></svg>на любую сумму</small></div>
+        <div class="info">
+          <div><svg class="i"><use href="#pin"/></svg>ЖК Gul-Ana, Скрябина 28 к2, цоколь</div>
+          <div><svg class="i"><use href="#clock"/></svg>Ежедневно 11:00–23:00</div>
+        </div>
+      </div>
+    </div></div><div class="cap">Программы и контакты</div></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Для глаз</b>Не чёрный, а тёплый графит; не белый текст, а кремовый. Вечером в темноте экран не слепит.</div>
+    <div class="note"><b>Удобство</b>Можно включать автоматически: днём светлая тема (9 или 10), вечером — эта.</div>
+    <div class="note"><b>Стиль</b>Атмосферно и стильно, как лаунж-зона спа. Шрифты Cormorant + Manrope.</div>
+  </div>
+</section>
+</body>
+</html>
