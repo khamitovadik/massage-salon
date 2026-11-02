@@ -2,6 +2,7 @@ package com.salon.controller;
 
 import com.salon.dto.response.HourSlotResponse;
 import com.salon.entity.EmployeeSchedule;
+import com.salon.entity.EmployeeWorkDay;
 import com.salon.entity.TimeBlock;
 import com.salon.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -85,6 +86,48 @@ public class ScheduleController {
         LocalTime start = body.get("startTime") != null ? LocalTime.parse(body.get("startTime")) : null;
         LocalTime end = body.get("endTime") != null ? LocalTime.parse(body.get("endTime")) : null;
         return ResponseEntity.ok(scheduleService.addBlock(employeeId, date, start, end, body.get("reason")));
+    }
+
+    /**
+     * Часы работы всех сотрудников по датам за период — для календаря расписания.
+     * GET /api/schedule/days?from=2026-11-02&to=2026-11-08
+     */
+    @GetMapping("/days")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
+    public ResponseEntity<List<EmployeeWorkDay>> getWorkDays(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(scheduleService.getWorkDays(from, to));
+    }
+
+    /**
+     * Задать часы работы сотрудника на дату — ADMIN/OWNER.
+     * PUT /api/schedule/employee/{employeeId}/day/2026-11-05
+     * Body: {"working":true,"workStart":"12:00","workEnd":"20:00"} или {"working":false}
+     */
+    @PutMapping("/employee/{employeeId}/day/{date}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<EmployeeWorkDay> saveWorkDay(
+            @PathVariable Long employeeId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestBody Map<String, Object> body) {
+        boolean working = Boolean.TRUE.equals(body.get("working"));
+        LocalTime start = body.get("workStart") != null ? LocalTime.parse((String) body.get("workStart")) : null;
+        LocalTime end = body.get("workEnd") != null ? LocalTime.parse((String) body.get("workEnd")) : null;
+        return ResponseEntity.ok(scheduleService.saveWorkDay(employeeId, date, working, start, end));
+    }
+
+    /**
+     * Сбросить часы на дату к недельному расписанию — ADMIN/OWNER.
+     * DELETE /api/schedule/employee/{employeeId}/day/2026-11-05
+     */
+    @DeleteMapping("/employee/{employeeId}/day/{date}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<Void> removeWorkDay(
+            @PathVariable Long employeeId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        scheduleService.removeWorkDay(employeeId, date);
+        return ResponseEntity.noContent().build();
     }
 
     /**

@@ -39,6 +39,7 @@ public class UserService {
         jdbc.update("DELETE FROM appointments WHERE " + appointmentWhere, id, id, id);
         jdbc.update("DELETE FROM subscriptions WHERE client_id = ?", id);
         jdbc.update("DELETE FROM employee_schedules WHERE employee_id IN (" + employeeIds + ")", id);
+        jdbc.update("DELETE FROM employee_work_days WHERE employee_id IN (" + employeeIds + ")", id);
         jdbc.update("DELETE FROM time_blocks WHERE employee_id IN (" + employeeIds + ")", id);
         jdbc.update("DELETE FROM employees WHERE user_id = ?", id);
         jdbc.update("DELETE FROM users WHERE id = ?", id);

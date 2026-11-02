@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
 import api from '../api/client'
 import { getAuth, isAdmin, isStaff } from '../store/auth'
 import type { Appointment, AppointmentStatus } from '../types'
@@ -10,6 +11,14 @@ interface DaySchedule {
   working: boolean
   workStart: string
   workEnd: string
+}
+/** Часы на конкретную дату — важнее недельного расписания */
+interface WorkDay {
+  employeeId: number
+  workDate: string
+  working: boolean
+  workStart: string | null
+  workEnd: string | null
 }
 
 const DAY_NAMES: Record<string, string> = {
@@ -37,6 +46,11 @@ const isoDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
 const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r }
 const minutesOf = (hhmm: string) => { const [h, m] = hhmm.split(':').map(Number); return h * 60 + m }
 const timeOf = (iso: string) => iso.slice(11, 16)
+const hhmm = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`
+// Варианты времени в редакторе: каждые 30 минут с 08:00 до 23:30 (LocalTime на бэкенде не принимает 24:00)
+const TIME_OPTIONS = Array.from({ length: 32 }, (_, i) => hhmm(8 * 60 + i * 30))
+
+interface Editor { empId: number; working: boolean; start: string; end: string; dates: string[] }
 
 export default function SchedulePage() {
   const { user } = getAuth()
@@ -46,6 +60,9 @@ export default function SchedulePage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [schedules, setSchedules] = useState<Record<number, DaySchedule[]>>({})
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [workDays, setWorkDays] = useState<WorkDay[]>([])
+  const [editor, setEditor] = useState<Editor | null>(null)
+  const [savingDays, setSavingDays] = useState(false)
   const [date, setDate] = useState(() => new Date())
   const [loading, setLoading] = useState(true)
   const [now, setNow] = useState(() => new Date())
@@ -93,13 +110,59 @@ export default function SchedulePage() {
     const monday = addDays(date, -((date.getDay() + 6) % 7))
     return Array.from({ length: 7 }, (_, i) => addDays(monday, i))
   }, [day])
+  const weekFrom = isoDate(week[0])
 
-  // Рабочие часы мастера в выбранный день; null — выходной
-  function workHours(empId: number): [number, number] | null {
-    const sch = (schedules[empId] ?? []).find(s => s.dayOfWeek === JS_DAYS[date.getDay()])
+  function loadWorkDays() {
+    if (!staff) return
+    api.get<WorkDay[]>('/schedule/days', { params: { from: weekFrom, to: isoDate(week[6]) } })
+      .then(r => setWorkDays(r.data)).catch(() => setWorkDays([]))
+  }
+  useEffect(loadWorkDays, [weekFrom])
+
+  const override = (empId: number, d: string) => workDays.find(w => w.employeeId === empId && w.workDate === d)
+
+  // Рабочие часы мастера на дату; null — выходной.
+  // Порядок как на бэкенде: график на дату → недельное расписание → часы салона
+  function workHours(empId: number, d: Date = date): [number, number] | null {
+    const o = override(empId, isoDate(d))
+    if (o) return o.working && o.workStart && o.workEnd ? [minutesOf(o.workStart), minutesOf(o.workEnd)] : null
+    const sch = (schedules[empId] ?? []).find(s => s.dayOfWeek === JS_DAYS[d.getDay()])
     if (!sch) return [DAY_START * 60, DAY_END * 60]
     if (!sch.working) return null
     return [minutesOf(sch.workStart), minutesOf(sch.workEnd)]
+  }
+
+  function openEditor(empId: number) {
+    const h = workHours(empId)
+    setEditor({
+      empId, working: !!h,
+      start: hhmm(h ? h[0] : DAY_START * 60), end: hhmm(h ? h[1] : DAY_END * 60),
+      dates: [day],
+    })
+  }
+
+  async function saveEditor(reset = false) {
+    if (!editor || editor.dates.length === 0) return
+    if (!reset && editor.working && editor.start >= editor.end) {
+      toast.error('Начало должно быть раньше конца')
+      return
+    }
+    setSavingDays(true)
+    try {
+      await Promise.all(editor.dates.map(d => {
+        const url = `/schedule/employee/${editor.empId}/day/${d}`
+        return reset
+          ? api.delete(url)
+          : api.put(url, editor.working ? { working: true, workStart: editor.start, workEnd: editor.end } : { working: false })
+      }))
+      toast.success(reset ? 'Вернули обычный график' : 'График сохранён')
+      setEditor(null)
+      loadWorkDays()
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Не удалось сохранить график')
+    } finally {
+      setSavingDays(false)
+    }
   }
 
   // Сетка покрывает и часы салона, и нестандартные графики мастеров
@@ -110,7 +173,7 @@ export default function SchedulePage() {
       if (h) { s = Math.min(s, h[0]); e = Math.max(e, h[1]) }
     })
     return [Math.floor(s / 60), Math.ceil(e / 60)]
-  }, [employees, schedules, day])
+  }, [employees, schedules, workDays, day])
 
   const hours = Array.from({ length: gridEnd - gridStart }, (_, i) => gridStart + i)
   const top = (min: number) => ((min - gridStart * 60) / 60) * HOUR_PX
@@ -151,6 +214,75 @@ export default function SchedulePage() {
         })}
       </div>
 
+      {admin && employees.length > 0 && !editor && (
+        <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10 }}>
+          Нажмите на имя мастера, чтобы задать его часы работы на выбранные дни.
+        </div>
+      )}
+
+      {editor && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+            <h3 style={{ margin: 0 }}>Часы работы: {employees.find(e => e.id === editor.empId)?.name}</h3>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+              Неделя {week[0].getDate()} {MONTHS[week[0].getMonth()]} – {week[6].getDate()} {MONTHS[week[6].getMonth()]}
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(0, 1fr))', gap: 6, marginBottom: 12 }}>
+            {week.map(d => {
+              const iso = isoDate(d)
+              const on = editor.dates.includes(iso)
+              const h = workHours(editor.empId, d)
+              return (
+                <button key={iso} type="button"
+                  onClick={() => setEditor({ ...editor, dates: on ? editor.dates.filter(x => x !== iso) : [...editor.dates, iso] })}
+                  style={{
+                    padding: '6px 2px', borderRadius: 10, cursor: 'pointer', textAlign: 'center', fontSize: 12,
+                    background: on ? 'var(--brand)' : 'transparent', color: on ? 'var(--card)' : 'var(--text)',
+                    border: `1px solid ${on ? 'var(--brand)' : 'var(--border)'}`,
+                  }}>
+                  <div style={{ fontWeight: 600 }}>{DAY_NAMES[JS_DAYS[d.getDay()]]} {d.getDate()}</div>
+                  <div style={{ fontSize: 11, opacity: .8 }}>{h ? `${hhmm(h[0])}–${hhmm(h[1])}` : 'вых.'}</div>
+                </button>
+              )
+            })}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', marginBottom: 14 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <input type="checkbox" checked={editor.working} onChange={e => setEditor({ ...editor, working: e.target.checked })} />
+              Работает
+            </label>
+            {editor.working ? (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                с
+                <select className="input" style={{ width: 'auto' }} value={editor.start} onChange={e => setEditor({ ...editor, start: e.target.value })}>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                до
+                <select className="input" style={{ width: 'auto' }} value={editor.end} onChange={e => setEditor({ ...editor, end: e.target.value })}>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </span>
+            ) : (
+              <span style={{ color: 'var(--text-muted)' }}>Выходной — записаться к мастеру будет нельзя</span>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <button className="btn btn-primary" disabled={savingDays || editor.dates.length === 0} onClick={() => saveEditor()}>
+              Сохранить{editor.dates.length > 1 ? ` (${editor.dates.length} дн.)` : ''}
+            </button>
+            <button className="btn btn-secondary" disabled={savingDays || editor.dates.length === 0} onClick={() => saveEditor(true)}
+              title="Убрать особые часы — день пойдёт по обычному графику">
+              Как обычно
+            </button>
+            <button className="btn btn-secondary" disabled={savingDays} onClick={() => setEditor(null)}>Отмена</button>
+          </div>
+        </div>
+      )}
+
       {employees.length === 0 ? (
         <div className="card text-muted">Сотрудники не найдены.</div>
       ) : (
@@ -161,12 +293,23 @@ export default function SchedulePage() {
             {employees.map(emp => {
               const h = workHours(emp.id)
               const count = appointments.filter(a => a.employeeId === emp.id).length
+              const special = !!override(emp.id, day)
+              const selected = editor?.empId === emp.id
               return (
-                <div key={emp.id} style={{ padding: '12px 10px', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)' }}>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{emp.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                    {h ? `${pad(Math.floor(h[0] / 60))}:${pad(h[0] % 60)}–${pad(Math.floor(h[1] / 60))}:${pad(h[1] % 60)}` : 'Выходной'}
-                    {count > 0 && ` · ${count} зап.`}
+                <div key={emp.id}
+                  onClick={admin ? () => openEditor(emp.id) : undefined}
+                  title={admin ? 'Изменить часы работы' : undefined}
+                  style={{
+                    padding: '12px 10px', borderBottom: '1px solid var(--border)', borderLeft: '1px solid var(--border)',
+                    cursor: admin ? 'pointer' : undefined, background: selected ? 'var(--brand-light)' : undefined,
+                  }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {emp.name}
+                    {admin && <Pencil size={13} style={{ color: 'var(--text-faint)' }} />}
+                  </div>
+                  <div style={{ fontSize: 12, color: special ? 'var(--brand)' : 'var(--text-muted)' }}>
+                    {h ? `${hhmm(h[0])}–${hhmm(h[1])}` : 'Выходной'}
+                    {count > 0 && <span style={{ color: 'var(--text-muted)' }}> · {count} зап.</span>}
                   </div>
                 </div>
               )

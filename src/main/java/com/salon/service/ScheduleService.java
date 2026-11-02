@@ -25,6 +25,7 @@ public class ScheduleService {
     private final AppointmentRepository appointmentRepo;
     private final EmployeeRepository employeeRepo;
     private final SalonServiceRepository serviceRepo;
+    private final EmployeeWorkDayRepository workDayRepo;
 
     /**
      * Получить расписание сотрудника (все 7 дней).
@@ -64,6 +65,36 @@ public class ScheduleService {
         return result;
     }
 
+    /** Часы работы по датам (все сотрудники) за период — для календаря */
+    public List<EmployeeWorkDay> getWorkDays(LocalDate from, LocalDate to) {
+        return workDayRepo.findAllByWorkDateBetween(from, to);
+    }
+
+    /**
+     * Задать часы работы сотрудника на дату. working=false — выходной.
+     */
+    @Transactional
+    public EmployeeWorkDay saveWorkDay(Long employeeId, LocalDate date, boolean working, LocalTime start, LocalTime end) {
+        Employee employee = employeeRepo.findById(employeeId)
+            .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
+        if (working && (start == null || end == null || !start.isBefore(end))) {
+            throw new RuntimeException("Начало работы должно быть раньше конца");
+        }
+
+        EmployeeWorkDay day = workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date)
+            .orElseGet(() -> EmployeeWorkDay.builder().employee(employee).workDate(date).build());
+        day.setWorking(working);
+        day.setWorkStart(working ? start : null);
+        day.setWorkEnd(working ? end : null);
+        return workDayRepo.save(day);
+    }
+
+    /** Убрать часы на дату — день снова идёт по недельному расписанию */
+    @Transactional
+    public void removeWorkDay(Long employeeId, LocalDate date) {
+        workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date).ifPresent(workDayRepo::delete);
+    }
+
     /**
      * Добавить блокировку времени.
      */
@@ -94,12 +125,9 @@ public class ScheduleService {
      * employeeId — сотрудник, serviceId — услуга (нужна длительность), date — дата.
      */
     public List<String> getAvailableSlots(Long employeeId, Long serviceId, LocalDate date) {
-        // 1. Загружаем расписание на этот день недели
-        DayOfWeek dow = date.getDayOfWeek();
-        EmployeeSchedule sch = scheduleRepo.findByEmployeeIdAndDayOfWeek(employeeId, dow)
-            .orElse(null);
-
-        if (sch == null || !sch.isWorking() || sch.getWorkStart() == null) {
+        // 1. Рабочие часы на эту дату
+        LocalTime[] hours = workingHours(employeeId, date);
+        if (hours == null) {
             return List.of(); // выходной
         }
 
@@ -122,8 +150,8 @@ public class ScheduleService {
 
         // 5. Генерируем слоты с шагом 30 минут
         List<String> available = new ArrayList<>();
-        LocalTime cursor = sch.getWorkStart();
-        LocalTime workEnd = sch.getWorkEnd();
+        LocalTime cursor = hours[0];
+        LocalTime workEnd = hours[1];
 
         while (!cursor.plusMinutes(duration).isAfter(workEnd)) {
             LocalDateTime slotStart = date.atTime(cursor);
@@ -217,8 +245,16 @@ public class ScheduleService {
         }
     }
 
-    /** Рабочие часы мастера на дату: [начало, конец] или null, если выходной */
+    /**
+     * Рабочие часы мастера на дату: [начало, конец] или null, если выходной.
+     * Порядок: график на конкретную дату → недельное расписание → часы салона.
+     */
     private LocalTime[] workingHours(Long employeeId, LocalDate date) {
+        EmployeeWorkDay day = workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date).orElse(null);
+        if (day != null) {
+            if (!day.isWorking() || day.getWorkStart() == null || day.getWorkEnd() == null) return null;
+            return new LocalTime[]{day.getWorkStart(), day.getWorkEnd()};
+        }
         EmployeeSchedule sch = scheduleRepo.findByEmployeeIdAndDayOfWeek(employeeId, date.getDayOfWeek()).orElse(null);
         if (sch == null) return new LocalTime[]{DEFAULT_START, DEFAULT_END};
         if (!sch.isWorking() || sch.getWorkStart() == null || sch.getWorkEnd() == null) return null;
