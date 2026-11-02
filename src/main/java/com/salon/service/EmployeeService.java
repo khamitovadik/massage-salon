@@ -23,11 +23,16 @@ public class EmployeeService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    /** Создать сотрудника: создаём User с ролью EMPLOYEE + Employee профиль */
+    /**
+     * Создать сотрудника: создаём User с ролью EMPLOYEE + Employee профиль.
+     * Если аккаунт с таким email уже есть (например, человек зарегистрировался сам) —
+     * добавляем карточку мастера к нему; пароль при этом не меняем.
+     */
     @Transactional
     public EmployeeResponse create(CreateEmployeeRequest req) {
-        if (userRepository.existsByEmail(req.getEmail())) {
-            throw new RuntimeException("Email уже занят");
+        User existing = userRepository.findByEmail(req.getEmail()).orElse(null);
+        if (existing != null) {
+            return attachToExistingUser(existing, req);
         }
         if (userRepository.existsByPhone(req.getPhone())) {
             throw new RuntimeException("Телефон уже занят");
@@ -47,6 +52,32 @@ public class EmployeeService {
             .specialization(req.getSpecialization())
             .description(req.getDescription())
             .build();
+        employeeRepository.save(employee);
+
+        return EmployeeResponse.from(employee);
+    }
+
+    private EmployeeResponse attachToExistingUser(User user, CreateEmployeeRequest req) {
+        Employee employee = employeeRepository.findByUserId(user.getId()).orElse(null);
+        if (employee != null && employee.isActive()) {
+            throw new RuntimeException("Этот пользователь уже сотрудник");
+        }
+        userRepository.findByPhone(req.getPhone())
+            .filter(other -> !other.getId().equals(user.getId()))
+            .ifPresent(other -> { throw new RuntimeException("Телефон уже занят другим пользователем"); });
+
+        user.setName(req.getName());
+        user.setPhone(req.getPhone());
+        user.setActive(true);
+        // Руководителя/админа не понижаем — они тоже могут принимать клиентов
+        if (user.getRole() == Role.CLIENT) user.setRole(Role.EMPLOYEE);
+        userRepository.save(user);
+
+        // Деактивированного мастера возвращаем, а не создаём вторую карточку (user_id уникален)
+        if (employee == null) employee = Employee.builder().user(user).build();
+        employee.setSpecialization(req.getSpecialization());
+        employee.setDescription(req.getDescription());
+        employee.setActive(true);
         employeeRepository.save(employee);
 
         return EmployeeResponse.from(employee);

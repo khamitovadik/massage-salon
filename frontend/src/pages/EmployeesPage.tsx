@@ -31,7 +31,8 @@ export default function EmployeesPage() {
         specialization: form.specialization,
         description: form.description || undefined,
       })
-      setList(l => [...l, emp])
+      // Существующий (в т.ч. деактивированный) аккаунт возвращается с тем же id — заменяем, а не дублируем
+      setList(l => l.some(x => x.id === emp.id) ? l.map(x => x.id === emp.id ? emp : x) : [...l, emp])
       setForm({ name: '', email: '', phone: '', password: '', specialization: '', description: '' })
       setShowForm(false)
       toast.success('Сотрудник добавлен')
@@ -84,6 +85,7 @@ export default function EmployeesPage() {
               <div className="field">
                 <label className="label">Пароль</label>
                 <input className="input" type="password" value={form.password} onChange={set('password')} required minLength={6} />
+                <small className="text-muted" style={{ fontSize: 12 }}>Если email уже зарегистрирован, у аккаунта останется прежний пароль</small>
               </div>
               <div className="field">
                 <label className="label">Специализация</label>
