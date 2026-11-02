@@ -21,7 +21,7 @@ public class SalonSettingsService {
             SalonSettings.builder()
                 .id(SETTINGS_ID)
                 .name("Массажный салон")
-                .workingHours("Пн–Вс 09:00–21:00")
+                .workingHours("Ежедневно 11:00–23:00")
                 .build()
         );
     }

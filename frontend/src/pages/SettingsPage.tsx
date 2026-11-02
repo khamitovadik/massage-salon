@@ -19,7 +19,7 @@ interface SalonSettings {
 
 const EMPTY: SalonSettings = {
   name: '', address: '', phone: '', email: '',
-  description: '', workingHoursStart: '09:00', workingHoursEnd: '21:00',
+  description: '', workingHoursStart: '11:00', workingHoursEnd: '23:00',
   annualPrice: '', annualSessions: '', annualDescription: ''
 }
 

@@ -17,8 +17,8 @@ import java.util.Map;
 public class ScheduleService {
 
     /** Часы работы по умолчанию, если у мастера не заполнено расписание на этот день */
-    private static final LocalTime DEFAULT_START = LocalTime.of(9, 0);
-    private static final LocalTime DEFAULT_END = LocalTime.of(21, 0);
+    private static final LocalTime DEFAULT_START = LocalTime.of(11, 0);
+    private static final LocalTime DEFAULT_END = LocalTime.of(23, 0);
 
     private final EmployeeScheduleRepository scheduleRepo;
     private final TimeBlockRepository timeBlockRepo;
