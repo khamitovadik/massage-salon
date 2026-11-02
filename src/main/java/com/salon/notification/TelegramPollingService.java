@@ -85,10 +85,14 @@ public class TelegramPollingService {
                     "`/start ваш@email.com`\n\n" +
                     "Например: `/start client@mail.ru`");
             }
+        } else if (text.startsWith("/id")) {
+            // Нужен, чтобы добавить чат в app.telegram.owner-chat-id
+            telegramService.sendToChat(chatId, "Ваш chat ID: `" + chatId + "`");
         } else if (text.startsWith("/help")) {
             telegramService.sendToChat(chatId,
                 "📋 *Команды бота:*\n\n" +
                 "/start email — привязать Telegram к аккаунту\n" +
+                "/id — показать ваш chat ID\n" +
                 "/help — список команд");
         }
     }

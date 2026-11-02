@@ -75,10 +75,11 @@ public class TelegramNotificationService {
         return sendMessage(chatId, text);
     }
 
-    /** Уведомить руководителя */
+    /** Уведомить руководителей — в owner-chat-id можно указать несколько chat ID через запятую */
     public void notifyOwner(String message) {
-        if (ownerChatId != null && !ownerChatId.isBlank()) {
-            sendMessage(ownerChatId, message);
+        if (ownerChatId == null) return;
+        for (String id : ownerChatId.split(",")) {
+            if (!id.isBlank()) sendMessage(id.trim(), message);
         }
     }
 
