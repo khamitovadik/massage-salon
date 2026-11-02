@@ -29,7 +29,7 @@ app:
 
   telegram:
     bot-token: "8793892295:AAFFgcOKMCwTToNSlHhKFai-cnR1WEhlf9w"
-    owner-chat-id: "978503826"   # несколько получателей — через запятую: "978503826,123456789"
+    owner-chat-id: "978503826,5510067114"   # получатели уведомлений о записях, через запятую (второй — @A1ik0n)
 
 logging:
   level:
