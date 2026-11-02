@@ -3,6 +3,7 @@ package com.salon.controller;
 import com.salon.entity.Role;
 import com.salon.entity.User;
 import com.salon.repository.UserRepository;
+import com.salon.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
      * Получить текущего пользователя.
@@ -88,16 +90,29 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
+        // Map.of падает на null — пустые поля заменяем строкой, иначе весь список отдаёт ошибку
         List<Map<String, Object>> users = userRepository.findAll().stream()
             .map(u -> Map.<String, Object>of(
                 "id", u.getId(),
-                "name", u.getName(),
-                "email", u.getEmail(),
+                "name", u.getName() != null ? u.getName() : "",
+                "email", u.getEmail() != null ? u.getEmail() : "",
                 "phone", u.getPhone() != null ? u.getPhone() : "",
-                "role", u.getRole().name()
+                "role", u.getRole() != null ? u.getRole().name() : Role.CLIENT.name(),
+                "active", u.isActive()
             ))
             .collect(Collectors.toList());
         return ResponseEntity.ok(users);
+    }
+
+    /**
+     * Удалить пользователя вместе с его записями, абонементами и отзывами (только для OWNER).
+     * DELETE /api/users/{id}
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id, Authentication auth) {
+        userService.deleteWithData(id, auth.getName());
+        return ResponseEntity.noContent().build();
     }
 
     /**

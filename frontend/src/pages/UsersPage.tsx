@@ -9,6 +9,7 @@ interface UserItem {
   email: string
   phone: string
   role: Role
+  active: boolean
 }
 
 const ROLES: Role[] = ['CLIENT', 'EMPLOYEE', 'ADMIN', 'OWNER']
@@ -24,9 +25,13 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserItem[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<number | null>(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/users').then(r => setUsers(r.data)).finally(() => setLoading(false))
+    api.get('/users')
+      .then(r => setUsers(r.data))
+      .catch(e => setError(e?.response?.data?.error || 'Не удалось загрузить пользователей'))
+      .finally(() => setLoading(false))
   }, [])
 
   async function changeRole(id: number, role: Role) {
@@ -34,6 +39,20 @@ export default function UsersPage() {
     try {
       await api.patch(`/users/${id}/role`, { role })
       setUsers(users.map(u => u.id === id ? { ...u, role } : u))
+    } finally {
+      setSaving(null)
+    }
+  }
+
+  async function remove(u: UserItem) {
+    if (!confirm(`Удалить ${u.name} (${u.email})?
+Вместе с ним удалятся его записи, абонементы и отзывы. Это нельзя отменить.`)) return
+    setSaving(u.id)
+    try {
+      await api.delete(`/users/${u.id}`)
+      setUsers(users => users.filter(x => x.id !== u.id))
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Не удалось удалить пользователя')
     } finally {
       setSaving(null)
     }
@@ -52,12 +71,16 @@ export default function UsersPage() {
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13 }}>Email</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13 }}>Телефон</th>
               <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: 13 }}>Роль</th>
+              <th style={{ padding: '12px 16px' }} />
             </tr>
           </thead>
           <tbody>
             {users.map(u => (
               <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '12px 16px', fontSize: 14 }}>{u.name}</td>
+                <td style={{ padding: '12px 16px', fontSize: 14 }}>
+                  {u.name}
+                  {!u.active && <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-muted)' }}>(деактивирован)</span>}
+                </td>
                 <td style={{ padding: '12px 16px', fontSize: 14, color: 'var(--text-muted)' }}>{u.email}</td>
                 <td style={{ padding: '12px 16px', fontSize: 14, color: 'var(--text-muted)' }}>{u.phone || '—'}</td>
                 <td style={{ padding: '12px 16px' }}>
@@ -75,13 +98,16 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </td>
+                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                  <button className="btn btn-sm btn-danger" title="Удалить пользователя" disabled={saving === u.id} onClick={() => remove(u)}>✕</button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
         {users.length === 0 && (
           <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>
-            Нет пользователей
+            {error || 'Нет пользователей'}
           </div>
         )}
       </div>
