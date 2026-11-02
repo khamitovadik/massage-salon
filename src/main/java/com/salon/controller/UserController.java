@@ -124,7 +124,8 @@ public class UserController {
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<Map<String, String>> updateRole(
             @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
 
         String roleName = body.get("role");
         if (roleName == null) {
@@ -133,6 +134,11 @@ public class UserController {
 
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        // Иначе руководитель случайно снимает с себя роль и теряет доступ к этой странице
+        if (user.getEmail() != null && user.getEmail().equalsIgnoreCase(auth.getName())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Нельзя изменить свою роль"));
+        }
 
         user.setRole(Role.valueOf(roleName));
         userRepository.save(user);

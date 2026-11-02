@@ -39,6 +39,8 @@ export default function UsersPage() {
     try {
       await api.patch(`/users/${id}/role`, { role })
       setUsers(users.map(u => u.id === id ? { ...u, role } : u))
+    } catch (e: any) {
+      alert(e?.response?.data?.error || 'Не удалось изменить роль')
     } finally {
       setSaving(null)
     }
