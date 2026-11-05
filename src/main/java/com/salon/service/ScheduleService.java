@@ -16,10 +16,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ScheduleService {
 
-    /** Часы работы по умолчанию, если у мастера не заполнено расписание на этот день */
-    private static final LocalTime DEFAULT_START = LocalTime.of(11, 0);
-    private static final LocalTime DEFAULT_END = LocalTime.of(23, 0);
-
     private final EmployeeScheduleRepository scheduleRepo;
     private final TimeBlockRepository timeBlockRepo;
     private final AppointmentRepository appointmentRepo;
@@ -247,7 +243,7 @@ public class ScheduleService {
 
     /**
      * Рабочие часы мастера на дату: [начало, конец] или null, если выходной.
-     * Порядок: график на конкретную дату → недельное расписание → часы салона.
+     * Порядок: график на конкретную дату → недельное расписание → иначе выходной.
      */
     private LocalTime[] workingHours(Long employeeId, LocalDate date) {
         EmployeeWorkDay day = workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date).orElse(null);
@@ -256,7 +252,8 @@ public class ScheduleService {
             return new LocalTime[]{day.getWorkStart(), day.getWorkEnd()};
         }
         EmployeeSchedule sch = scheduleRepo.findByEmployeeIdAndDayOfWeek(employeeId, date.getDayOfWeek()).orElse(null);
-        if (sch == null) return new LocalTime[]{DEFAULT_START, DEFAULT_END};
+        // Руководитель не задал часы — мастер в этот день не принимает, слотов нет
+        if (sch == null) return null;
         if (!sch.isWorking() || sch.getWorkStart() == null || sch.getWorkEnd() == null) return null;
         return new LocalTime[]{sch.getWorkStart(), sch.getWorkEnd()};
     }

@@ -28,7 +28,7 @@ const DAY_NAMES: Record<string, string> = {
 const JS_DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 const MONTHS = ['янв.', 'февр.', 'мар.', 'апр.', 'мая', 'июн.', 'июл.', 'авг.', 'сент.', 'окт.', 'нояб.', 'дек.']
 
-// Часы салона по умолчанию — как DEFAULT_START/END в ScheduleService
+// Видимая часть сетки и время, подставляемое в редактор по умолчанию (часы салона)
 const DAY_START = 11
 const DAY_END = 23
 const HOUR_PX = 64
@@ -50,7 +50,8 @@ const hhmm = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`
 // Варианты времени в редакторе: каждые 30 минут с 08:00 до 23:30 (LocalTime на бэкенде не принимает 24:00)
 const TIME_OPTIONS = Array.from({ length: 32 }, (_, i) => hhmm(8 * 60 + i * 30))
 
-interface Editor { empId: number; working: boolean; start: string; end: string; dates: string[] }
+interface Editor { empId: number; working: boolean; start: string; end: string; dates: string[]; weeks: number }
+const REPEAT_WEEKS = [1, 2, 4, 8, 12]
 
 export default function SchedulePage() {
   const { user } = getAuth()
@@ -120,14 +121,17 @@ export default function SchedulePage() {
   useEffect(loadWorkDays, [weekFrom])
 
   const override = (empId: number, d: string) => workDays.find(w => w.employeeId === empId && w.workDate === d)
+  // Подпись для дня без часов: «Выходной», если его так отметили, иначе «Не задано»
+  const offLabel = (empId: number, d: Date = date) =>
+    override(empId, isoDate(d)) || (schedules[empId] ?? []).some(s => s.dayOfWeek === JS_DAYS[d.getDay()]) ? 'Выходной' : 'Часы не заданы'
 
-  // Рабочие часы мастера на дату; null — выходной.
-  // Порядок как на бэкенде: график на дату → недельное расписание → часы салона
+  // Рабочие часы мастера на дату; null — не работает.
+  // Порядок как на бэкенде: график на дату → недельное расписание → иначе не работает
   function workHours(empId: number, d: Date = date): [number, number] | null {
     const o = override(empId, isoDate(d))
     if (o) return o.working && o.workStart && o.workEnd ? [minutesOf(o.workStart), minutesOf(o.workEnd)] : null
     const sch = (schedules[empId] ?? []).find(s => s.dayOfWeek === JS_DAYS[d.getDay()])
-    if (!sch) return [DAY_START * 60, DAY_END * 60]
+    if (!sch) return null
     if (!sch.working) return null
     return [minutesOf(sch.workStart), minutesOf(sch.workEnd)]
   }
@@ -135,11 +139,17 @@ export default function SchedulePage() {
   function openEditor(empId: number) {
     const h = workHours(empId)
     setEditor({
-      empId, working: !!h,
+      // Часы ещё не заданы — открываем сразу с «Работает», руководитель обычно за этим и пришёл
+      empId, working: !!h || offLabel(empId) !== 'Выходной',
       start: hhmm(h ? h[0] : DAY_START * 60), end: hhmm(h ? h[1] : DAY_END * 60),
-      dates: [day],
+      dates: [day], weeks: 1,
     })
   }
+
+  // Выбранные дни, повторённые на N недель вперёд: «Пн и Ср на 4 недели» = 8 дат
+  const editorDates = (e: Editor) => [...new Set(
+    e.dates.flatMap(d => Array.from({ length: e.weeks }, (_, k) => isoDate(addDays(new Date(`${d}T12:00:00`), k * 7))))
+  )]
 
   async function saveEditor(reset = false) {
     if (!editor || editor.dates.length === 0) return
@@ -149,7 +159,7 @@ export default function SchedulePage() {
     }
     setSavingDays(true)
     try {
-      await Promise.all(editor.dates.map(d => {
+      await Promise.all(editorDates(editor).map(d => {
         const url = `/schedule/employee/${editor.empId}/day/${d}`
         return reset
           ? api.delete(url)
@@ -243,7 +253,7 @@ export default function SchedulePage() {
                     border: `1px solid ${on ? 'var(--brand)' : 'var(--border)'}`,
                   }}>
                   <div style={{ fontWeight: 600 }}>{DAY_NAMES[JS_DAYS[d.getDay()]]} {d.getDate()}</div>
-                  <div style={{ fontSize: 11, opacity: .8 }}>{h ? `${hhmm(h[0])}–${hhmm(h[1])}` : 'вых.'}</div>
+                  <div style={{ fontSize: 11, opacity: .8 }}>{h ? `${hhmm(h[0])}–${hhmm(h[1])}` : offLabel(editor.empId, d) === 'Выходной' ? 'вых.' : '—'}</div>
                 </button>
               )
             })}
@@ -268,11 +278,20 @@ export default function SchedulePage() {
             ) : (
               <span style={{ color: 'var(--text-muted)' }}>Выходной — записаться к мастеру будет нельзя</span>
             )}
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              повторять
+              <select className="input" style={{ width: 'auto' }} value={editor.weeks} onChange={e => setEditor({ ...editor, weeks: Number(e.target.value) })}>
+                {REPEAT_WEEKS.map(w => <option key={w} value={w}>{w === 1 ? 'только эту неделю' : `${w} нед. вперёд`}</option>)}
+              </select>
+            </span>
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: -6, marginBottom: 12 }}>
+            Дни из других недель тоже можно отметить: листайте недели стрелками вверху, выбор сохраняется.
           </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="btn btn-primary" disabled={savingDays || editor.dates.length === 0} onClick={() => saveEditor()}>
-              Сохранить{editor.dates.length > 1 ? ` (${editor.dates.length} дн.)` : ''}
+              Сохранить{editorDates(editor).length > 1 ? ` (${editorDates(editor).length} дн.)` : ''}
             </button>
             <button className="btn btn-secondary" disabled={savingDays || editor.dates.length === 0} onClick={() => saveEditor(true)}
               title="Убрать особые часы — день пойдёт по обычному графику">
@@ -308,7 +327,7 @@ export default function SchedulePage() {
                     {admin && <Pencil size={13} style={{ color: 'var(--text-faint)' }} />}
                   </div>
                   <div style={{ fontSize: 12, color: special ? 'var(--brand)' : 'var(--text-muted)' }}>
-                    {h ? `${hhmm(h[0])}–${hhmm(h[1])}` : 'Выходной'}
+                    {h ? `${hhmm(h[0])}–${hhmm(h[1])}` : offLabel(emp.id)}
                     {count > 0 && <span style={{ color: 'var(--text-muted)' }}> · {count} зап.</span>}
                   </div>
                 </div>

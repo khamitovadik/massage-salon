@@ -11,7 +11,8 @@ import { getClients } from '../api/users'
 import { getAuth, isStaff } from '../store/auth'
 import type { ClientShort, Employee, HourSlot, SalonService, Subscription } from '../types'
 
-const DAYS_AHEAD = 14
+// Руководитель составляет график на недели вперёд — даём записаться на 4 недели
+const DAYS_AHEAD = 28
 
 const SLOT_LABEL: Record<string, string> = {
   BUSY: 'Занято',
