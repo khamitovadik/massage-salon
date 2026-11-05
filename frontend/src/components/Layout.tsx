@@ -106,10 +106,13 @@ export default function Layout() {
         </nav>
 
         <div className="sidebar-footer">
-          <button className="nav-item" onClick={() => toast('По вопросам работы системы обратитесь к администратору салона')}>
+          <button className="nav-item" onClick={() => toast('По вопросам работы системы: компания AYA, +7 700 050 86 90')}>
             <CircleHelp size={17} strokeWidth={1.75} />
             Помощь и поддержка
           </button>
+          <div className="sidebar-credit">
+            Разработка — AYA · <a href="tel:+77000508690">+7 700 050 86 90</a>
+          </div>
           <div className="user-menu-anchor">
             <button className="sidebar-user" onClick={() => setMenu(m => m === 'side' ? null : 'side')}>
               <span className="avatar">{initials(user?.name)}</span>

@@ -272,6 +272,9 @@ export default function LandingPage() {
         <div className="l-container l-footer-inner">
           <span className="l-nav-brand"><Logo size={28} /> Em.Del.Relaxx</span>
           <span>© {new Date().getFullYear()} · Массажный салон</span>
+          <span className="l-credit">
+            Разработка сайта — <b>AYA</b> · <a href="tel:+77000508690">+7 700 050 86 90</a>
+          </span>
         </div>
       </footer>
 
