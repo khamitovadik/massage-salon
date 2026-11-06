@@ -1,102 +1,148 @@
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import api from '../api/client'
+import { getMyAppointments } from '../api/appointments'
+import { getAuth, isAdmin } from '../store/auth'
+import type { Appointment } from '../types'
+import { formatDateTime } from '../utils/format'
 
 interface Review {
   id: number
+  appointmentId: number
   clientName: string
+  employeeName: string
+  serviceName: string
   rating: number
-  comment: string
+  comment: string | null
   createdAt: string
-  approved: boolean
 }
 
 export default function ReviewsPage() {
+  const { user } = getAuth()
+  const admin = isAdmin(user?.role)
+  const client = user?.role === 'CLIENT'
   const [reviews, setReviews] = useState<Review[]>([])
+  const [myAppointments, setMyAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
-  const [form, setForm] = useState({ rating: 5, comment: '' })
+  const [form, setForm] = useState({ appointmentId: '', rating: 5, comment: '' })
   const [submitting, setSubmitting] = useState(false)
-  const [msg, setMsg] = useState('')
 
   function load() {
-    api.get('/reviews')
+    api.get<Review[]>('/reviews')
       .then(r => setReviews(r.data))
       .catch(() => setReviews([]))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+    if (client) getMyAppointments().then(setMyAppointments).catch(() => {})
+  }, [])
+
+  // Отзыв можно оставить только о завершённом сеансе и только один раз
+  const reviewed = new Set(reviews.map(r => r.appointmentId))
+  const reviewable = myAppointments.filter(a => a.status === 'COMPLETED' && !reviewed.has(a.id))
 
   function submit() {
-    if (!form.comment.trim()) return
+    if (!form.appointmentId) return
     setSubmitting(true)
-    setMsg('')
-    api.post('/reviews', form)
+    api.post('/reviews', { appointmentId: Number(form.appointmentId), rating: form.rating, comment: form.comment.trim() || null })
       .then(() => {
-        setMsg('✅ Отзыв отправлен на модерацию')
-        setForm({ rating: 5, comment: '' })
+        toast.success('Спасибо за отзыв!')
+        setForm({ appointmentId: '', rating: 5, comment: '' })
         load()
       })
-      .catch(() => setMsg('❌ Ошибка при отправке'))
+      .catch(err => toast.error(err.response?.data?.error || 'Ошибка при отправке'))
       .finally(() => setSubmitting(false))
   }
 
-  function stars(n: number) {
-    return '⭐'.repeat(n)
+  async function remove(id: number) {
+    if (!confirm('Удалить отзыв?')) return
+    try {
+      await api.delete(`/reviews/${id}`)
+      setReviews(l => l.filter(r => r.id !== id))
+      toast.success('Отзыв удалён')
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Ошибка')
+    }
   }
 
   return (
     <div>
       <h1 className="page-title" style={{ marginBottom: 24 }}>Отзывы</h1>
 
-      {/* Форма отзыва */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>
-        <h3 style={{ marginBottom: 16 }}>Оставить отзыв</h3>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontWeight: 600, marginRight: 12 }}>Оценка:</label>
-          {[1,2,3,4,5].map(n => (
-            <button
-              key={n}
-              onClick={() => setForm(p => ({ ...p, rating: n }))}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
-                opacity: n <= form.rating ? 1 : 0.3
-              }}
-            >⭐</button>
-          ))}
+      {client && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>
+          <h3 style={{ marginBottom: 16 }}>Оставить отзыв</h3>
+          {reviewable.length === 0 ? (
+            <div className="text-muted">Отзыв можно оставить после завершённого сеанса.</div>
+          ) : (
+            <>
+              <select
+                className="input"
+                value={form.appointmentId}
+                onChange={e => setForm(p => ({ ...p, appointmentId: e.target.value }))}
+                style={{ width: '100%', marginBottom: 12 }}
+              >
+                <option value="">— Выберите сеанс —</option>
+                {reviewable.map(a => (
+                  <option key={a.id} value={a.id}>
+                    {formatDateTime(a.startTime)} · {a.serviceName} · {a.employeeName}
+                  </option>
+                ))}
+              </select>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ fontWeight: 600, marginRight: 12 }}>Оценка:</label>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    aria-label={`${n} из 5`}
+                    onClick={() => setForm(p => ({ ...p, rating: n }))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 24, opacity: n <= form.rating ? 1 : 0.3 }}
+                  >⭐</button>
+                ))}
+              </div>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Ваш отзыв..."
+                value={form.comment}
+                onChange={e => setForm(p => ({ ...p, comment: e.target.value }))}
+                style={{ width: '100%', resize: 'vertical', marginBottom: 12 }}
+              />
+              <button className="btn btn-primary" onClick={submit} disabled={submitting || !form.appointmentId}>
+                {submitting ? 'Отправка...' : 'Отправить'}
+              </button>
+            </>
+          )}
         </div>
-        <textarea
-          className="input"
-          rows={3}
-          placeholder="Ваш отзыв..."
-          value={form.comment}
-          onChange={e => setForm(p => ({ ...p, comment: e.target.value }))}
-          style={{ width: '100%', resize: 'vertical', marginBottom: 12 }}
-        />
-        {msg && <div style={{ marginBottom: 8, color: msg.startsWith('✅') ? '#22c55e' : '#ef4444' }}>{msg}</div>}
-        <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-          {submitting ? 'Отправка...' : 'Отправить'}
-        </button>
-      </div>
+      )}
 
-      {/* Список отзывов */}
       {loading ? (
         <div className="text-muted">Загрузка...</div>
       ) : reviews.length === 0 ? (
         <div className="text-muted">Отзывов пока нет.</div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {reviews.filter(r => r.approved).map(r => (
-            <div key={r.id} style={{
-              background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <strong>{r.clientName}</strong>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-                  {new Date(r.createdAt).toLocaleDateString('ru-RU')}
-                </span>
+          {reviews.map(r => (
+            <div key={r.id} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 8 }}>
+                <div>
+                  <strong>{r.clientName}</strong>
+                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.serviceName} · мастер {r.employeeName}</div>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                    {new Date(r.createdAt).toLocaleDateString('ru-RU')}
+                  </span>
+                  {admin && (
+                    <button className="btn btn-sm btn-danger" title="Удалить отзыв" onClick={() => remove(r.id)}>✕</button>
+                  )}
+                </div>
               </div>
-              <div style={{ marginBottom: 8 }}>{stars(r.rating)}</div>
-              <div style={{ color: 'var(--text)' }}>{r.comment}</div>
+              <div style={{ marginBottom: 8 }}>{'⭐'.repeat(r.rating)}</div>
+              {r.comment && <div style={{ color: 'var(--text)' }}>{r.comment}</div>}
             </div>
           ))}
         </div>

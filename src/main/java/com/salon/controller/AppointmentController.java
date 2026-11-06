@@ -89,6 +89,7 @@ public class AppointmentController {
      * GET /api/appointments/{id}
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
     public ResponseEntity<AppointmentResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(appointmentService.getById(id));
     }

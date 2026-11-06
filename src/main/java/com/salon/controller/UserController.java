@@ -1,7 +1,9 @@
 package com.salon.controller;
 
 import com.salon.entity.Role;
+import com.salon.entity.Employee;
 import com.salon.entity.User;
+import com.salon.repository.EmployeeRepository;
 import com.salon.repository.UserRepository;
 import com.salon.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserService userService;
+    private final EmployeeRepository employeeRepository;
 
     /**
      * Получить текущего пользователя.
@@ -140,8 +143,23 @@ public class UserController {
             return ResponseEntity.badRequest().body(Map.of("error", "Нельзя изменить свою роль"));
         }
 
-        user.setRole(Role.valueOf(roleName));
+        Role newRole = Role.valueOf(roleName);
+        user.setRole(newRole);
         userRepository.save(user);
+
+        // Без карточки сотрудника мастер не появляется в списке и не открывает свои записи
+        Employee card = employeeRepository.findByUserId(user.getId()).orElse(null);
+        if (newRole == Role.EMPLOYEE) {
+            if (card == null) {
+                employeeRepository.save(Employee.builder().user(user).build());
+            } else if (!card.isActive()) {
+                card.setActive(true);
+                employeeRepository.save(card);
+            }
+        } else if (card != null && card.isActive()) {
+            card.setActive(false);
+            employeeRepository.save(card);
+        }
 
         return ResponseEntity.ok(Map.of("message", "Роль обновлена", "role", roleName));
     }

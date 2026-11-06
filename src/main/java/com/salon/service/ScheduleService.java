@@ -77,7 +77,7 @@ public class ScheduleService {
             throw new RuntimeException("Начало работы должно быть раньше конца");
         }
 
-        EmployeeWorkDay day = workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date)
+        EmployeeWorkDay day = workDayRepo.findByEmployee_IdAndWorkDate(employeeId, date)
             .orElseGet(() -> EmployeeWorkDay.builder().employee(employee).workDate(date).build());
         day.setWorking(working);
         day.setWorkStart(working ? start : null);
@@ -88,7 +88,7 @@ public class ScheduleService {
     /** Убрать часы на дату — день снова идёт по недельному расписанию */
     @Transactional
     public void removeWorkDay(Long employeeId, LocalDate date) {
-        workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date).ifPresent(workDayRepo::delete);
+        workDayRepo.findByEmployee_IdAndWorkDate(employeeId, date).ifPresent(workDayRepo::delete);
     }
 
     /**
@@ -246,7 +246,7 @@ public class ScheduleService {
      * Порядок: график на конкретную дату → недельное расписание → иначе выходной.
      */
     private LocalTime[] workingHours(Long employeeId, LocalDate date) {
-        EmployeeWorkDay day = workDayRepo.findByEmployeeIdAndWorkDate(employeeId, date).orElse(null);
+        EmployeeWorkDay day = workDayRepo.findByEmployee_IdAndWorkDate(employeeId, date).orElse(null);
         if (day != null) {
             if (!day.isWorking() || day.getWorkStart() == null || day.getWorkEnd() == null) return null;
             return new LocalTime[]{day.getWorkStart(), day.getWorkEnd()};

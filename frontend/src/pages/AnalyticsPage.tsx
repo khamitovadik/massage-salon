@@ -7,7 +7,7 @@ interface Stats {
   cancelledAppointments: number
   totalRevenue: number
   activeSubscriptions: number
-  totalClients: number
+  uniqueClients: number
 }
 
 export default function AnalyticsPage() {
@@ -16,7 +16,13 @@ export default function AnalyticsPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/analytics/summary')
+    // Бэкенд требует период — берём текущий месяц
+    const now = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const from = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-01`
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    const to = `${last.getFullYear()}-${pad(last.getMonth() + 1)}-${pad(last.getDate())}`
+    api.get('/analytics/summary', { params: { from, to } })
       .then(r => setStats(r.data))
       .catch(() => setError('Не удалось загрузить аналитику'))
       .finally(() => setLoading(false))
@@ -27,16 +33,16 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <h1 className="page-title" style={{ marginBottom: 24 }}>Аналитика</h1>
+      <h1 className="page-title" style={{ marginBottom: 24 }}>Аналитика за {new Date().toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' })}</h1>
 
       {stats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(200px, 100%), 1fr))', gap: 16 }}>
           <StatCard label="Всего записей" value={stats.totalAppointments} color="#6366f1" />
           <StatCard label="Завершено" value={stats.completedAppointments} color="#22c55e" />
           <StatCard label="Отменено" value={stats.cancelledAppointments} color="#ef4444" />
-          <StatCard label="Выручка (₸)" value={stats.totalRevenue.toLocaleString()} color="#f59e0b" />
+          <StatCard label="Выручка (₸)" value={Number(stats.totalRevenue ?? 0).toLocaleString()} color="#f59e0b" />
           <StatCard label="Абонементы" value={stats.activeSubscriptions} color="#8b5cf6" />
-          <StatCard label="Клиентов" value={stats.totalClients} color="#06b6d4" />
+          <StatCard label="Клиентов" value={stats.uniqueClients} color="#06b6d4" />
         </div>
       )}
     </div>

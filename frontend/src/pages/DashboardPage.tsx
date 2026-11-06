@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getMyAppointments } from '../api/appointments'
-import { getMyActiveSubscriptions } from '../api/subscriptions'
-import { getAuth } from '../store/auth'
+import { getAllAppointments, getMasterAppointments, getMyAppointments } from '../api/appointments'
+import { getAllSubscriptions, getMyActiveSubscriptions } from '../api/subscriptions'
+import { getAuth, isAdmin } from '../store/auth'
 import type { Appointment, Subscription } from '../types'
-import { formatDateTime, statusBadge } from '../utils/format'
+import { formatDateTime, statusBadge, statusLabel } from '../utils/format'
 
 export default function DashboardPage() {
   const { user } = getAuth()
@@ -12,15 +12,28 @@ export default function DashboardPage() {
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
 
+  const admin = isAdmin(user?.role)
+  const master = user?.role === 'EMPLOYEE'
+
   useEffect(() => {
-    Promise.all([getMyAppointments(), getMyActiveSubscriptions()])
-      .then(([a, s]) => { setAppointments(a.slice(0, 5)); setSubs(s) })
+    // Руководитель видит весь салон, мастер — свои записи, клиент — свои записи и абонементы
+    const appts = admin ? getAllAppointments() : master ? getMasterAppointments() : getMyAppointments()
+    const activeSubs = admin
+      ? getAllSubscriptions().then(l => l.filter(s => s.status === 'ACTIVE'))
+      : master ? Promise.resolve([]) : getMyActiveSubscriptions()
+    Promise.all([appts, activeSubs])
+      .then(([a, s]) => { setAppointments(a); setSubs(s) })
       .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <div className="spinner" />
 
-  const upcoming = appointments.filter(a => a.status !== 'CANCELLED' && a.status !== 'COMPLETED')
+  // Список приходит от поздних к ранним — ближайшие идут первыми после разворота
+  const upcoming = appointments
+    .filter(a => a.status !== 'CANCELLED' && a.status !== 'COMPLETED' && new Date(a.endTime) > new Date())
+    .slice()
+    .sort((x, y) => x.startTime.localeCompare(y.startTime))
+  const nearest = upcoming.slice(0, 5)
 
   return (
     <div>
@@ -70,12 +83,12 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {upcoming.map(a => (
+                {nearest.map(a => (
                   <tr key={a.id}>
                     <td>{formatDateTime(a.startTime)}</td>
                     <td>{a.serviceName}</td>
                     <td>{a.employeeName}</td>
-                    <td><span className={`badge ${statusBadge(a.status)}`}>{a.status}</span></td>
+                    <td><span className={`badge ${statusBadge(a.status)}`}>{statusLabel(a.status)}</span></td>
                   </tr>
                 ))}
               </tbody>

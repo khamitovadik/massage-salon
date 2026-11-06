@@ -76,6 +76,7 @@ public class SubscriptionController {
      * GET /api/subscriptions/{id}
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
     public ResponseEntity<SubscriptionResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(subscriptionService.getById(id));
     }

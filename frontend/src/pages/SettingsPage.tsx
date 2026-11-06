@@ -33,7 +33,8 @@ export default function SettingsPage() {
     api.get('/settings')
       .then(r => {
         const data = { ...EMPTY, ...r.data }
-        for (const key of ['annualPrice', 'annualSessions', 'annualDescription'] as const) {
+        // Пустые поля из БД приходят как null — input с value=null React считает неуправляемым
+        for (const key of Object.keys(EMPTY) as (keyof SalonSettings)[]) {
           data[key] = data[key] == null ? '' : String(data[key])
         }
         setForm(data); setSaved(data)

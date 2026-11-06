@@ -1,6 +1,6 @@
 package com.salon.controller;
 
-import com.salon.entity.Review;
+import com.salon.dto.response.ReviewResponse;
 import com.salon.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,23 +24,25 @@ public class ReviewController {
      * Body: {"appointmentId":5,"rating":5,"comment":"Отлично!"}
      */
     @PostMapping
-    public ResponseEntity<Review> create(
+    public ResponseEntity<ReviewResponse> create(
             @RequestBody Map<String, Object> body,
             Authentication auth) {
+        if (body.get("appointmentId") == null || body.get("rating") == null) {
+            throw new RuntimeException("Выберите сеанс и оценку");
+        }
         Long appointmentId = Long.valueOf(body.get("appointmentId").toString());
         int rating = Integer.parseInt(body.get("rating").toString());
         String comment = body.get("comment") != null ? body.get("comment").toString() : null;
-        return ResponseEntity.ok(reviewService.create(appointmentId, rating, comment, auth.getName()));
+        return ResponseEntity.ok(ReviewResponse.from(reviewService.create(appointmentId, rating, comment, auth.getName())));
     }
 
     /**
-     * Все отзывы — ADMIN/OWNER.
+     * Все отзывы — видят все вошедшие (клиенты читают отзывы, мастера — о себе).
      * GET /api/reviews
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<List<Review>> getAll() {
-        return ResponseEntity.ok(reviewService.getAll());
+    public ResponseEntity<List<ReviewResponse>> getAll() {
+        return ResponseEntity.ok(reviewService.getAll().stream().map(ReviewResponse::from).toList());
     }
 
     /**

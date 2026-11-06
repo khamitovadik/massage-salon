@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface EmployeeWorkDayRepository extends JpaRepository<EmployeeWorkDay, Long> {
 
-    Optional<EmployeeWorkDay> findByEmployeeIdAndWorkDate(Long employeeId, LocalDate workDate);
+    Optional<EmployeeWorkDay> findByEmployee_IdAndWorkDate(Long employeeId, LocalDate workDate);
 
     List<EmployeeWorkDay> findAllByWorkDateBetween(LocalDate from, LocalDate to);
 }

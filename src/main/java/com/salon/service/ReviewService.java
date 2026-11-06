@@ -63,7 +63,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepo.findAllByEmployeeIdOrderByCreatedAtDesc(employeeId);
         Double avg = reviewRepo.getAverageRatingByEmployee(employeeId);
         return Map.of(
-            "reviews", reviews,
+            "reviews", reviews.stream().map(com.salon.dto.response.ReviewResponse::from).toList(),
             "averageRating", avg != null ? Math.round(avg * 10.0) / 10.0 : 0.0,
             "totalCount", reviews.size()
         );
