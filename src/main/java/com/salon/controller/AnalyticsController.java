@@ -1,6 +1,8 @@
 package com.salon.controller;
 
 import com.salon.dto.response.AnalyticsResponse;
+import com.salon.dto.response.InsightsResponse;
+import com.salon.service.InsightsService;
 import com.salon.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,6 +22,7 @@ import java.time.LocalDate;
 public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
+    private final InsightsService insightsService;
 
     /**
      * GET /api/analytics/summary?from=2026-06-01&to=2026-06-30
@@ -29,5 +32,16 @@ public class AnalyticsController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
         return ResponseEntity.ok(analyticsService.getSummary(from, to));
+    }
+
+    /**
+     * Расширенная аналитика с выводами: сравнение с прошлым периодом, клиенты, загрузка, отзывы.
+     * GET /api/analytics/insights?from=2026-06-01&to=2026-06-30
+     */
+    @GetMapping("/insights")
+    public ResponseEntity<InsightsResponse> getInsights(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return ResponseEntity.ok(insightsService.compute(from, to));
     }
 }

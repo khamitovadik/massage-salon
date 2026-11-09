@@ -17,6 +17,13 @@ interface Review {
   createdAt: string
 }
 
+function pluralReviews(n: number) {
+  const m10 = n % 10, m100 = n % 100
+  if (m10 === 1 && m100 !== 11) return 'отзыв'
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return 'отзыва'
+  return 'отзывов'
+}
+
 export default function ReviewsPage() {
   const { user } = getAuth()
   const admin = isAdmin(user?.role)
@@ -38,6 +45,10 @@ export default function ReviewsPage() {
     load()
     if (client) getMyAppointments().then(setMyAppointments).catch(() => {})
   }, [])
+
+  // Сводка: средний рейтинг и распределение по звёздам
+  const average = reviews.length ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0
+  const countByStar = (n: number) => reviews.filter(r => r.rating === n).length
 
   // Отзыв можно оставить только о завершённом сеансе и только один раз
   const reviewed = new Set(reviews.map(r => r.appointmentId))
@@ -70,6 +81,26 @@ export default function ReviewsPage() {
   return (
     <div>
       <h1 className="page-title" style={{ marginBottom: 24 }}>Отзывы</h1>
+
+      {!loading && reviews.length > 0 && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 20, marginBottom: 24, maxWidth: 500, display: 'flex', gap: 24, alignItems: 'center' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: 36, fontWeight: 700, lineHeight: 1 }}>{average.toFixed(1)}</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>{reviews.length} {pluralReviews(reviews.length)}</div>
+          </div>
+          <div style={{ flex: 1 }}>
+            {[5, 4, 3, 2, 1].map(n => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                <span style={{ width: 24 }}>{n} ★</span>
+                <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
+                  <div style={{ width: `${(countByStar(n) / reviews.length) * 100}%`, height: '100%', background: '#f5b301' }} />
+                </div>
+                <span style={{ width: 20, textAlign: 'right', color: 'var(--text-muted)' }}>{countByStar(n)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {client && (
         <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, marginBottom: 32, maxWidth: 500 }}>
@@ -106,6 +137,7 @@ export default function ReviewsPage() {
               <textarea
                 className="input"
                 rows={3}
+                maxLength={1000}
                 placeholder="Ваш отзыв..."
                 value={form.comment}
                 onChange={e => setForm(p => ({ ...p, comment: e.target.value }))}

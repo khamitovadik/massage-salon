@@ -12,9 +12,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Optional<Review> findByAppointmentId(Long appointmentId);
 
+    void deleteByAppointmentId(Long appointmentId);
+
     List<Review> findAllByEmployeeIdOrderByCreatedAtDesc(Long employeeId);
 
     List<Review> findAllByOrderByCreatedAtDesc();
+
+    /** Оценки по сеансам периода: id мастера, оценка */
+    @Query("SELECT r.employee.id, r.rating FROM Review r WHERE r.appointment.startTime >= :from AND r.appointment.startTime < :to")
+    List<Object[]> findRatingsInRange(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.employee.id = :employeeId")
     Double getAverageRatingByEmployee(@Param("employeeId") Long employeeId);

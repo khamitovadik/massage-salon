@@ -1,10 +1,13 @@
 package com.salon.service;
 
 import com.salon.entity.*;
+import com.salon.notification.TelegramNotificationService;
 import com.salon.repository.AppointmentRepository;
+import com.salon.repository.EmployeeRepository;
 import com.salon.repository.ReviewRepository;
 import com.salon.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,11 +16,19 @@ import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ReviewService {
 
     private final ReviewRepository reviewRepo;
     private final AppointmentRepository appointmentRepo;
     private final UserRepository userRepo;
+    private final EmployeeRepository employeeRepo;
+    private final TelegramNotificationService telegram;
+
+    private static final String NL = System.lineSeparator();
+    private static final int MAX_COMMENT = 1000;
+    /** Оценка, начиная с которой владельцу уходит уведомление «недовольный клиент» */
+    private static final int LOW_RATING = 3;
 
     /** Оставить отзыв после завершённого сеанса */
     @Transactional
@@ -44,21 +55,55 @@ public class ReviewService {
             throw new RuntimeException("Оценка должна быть от 1 до 5");
         }
 
-        return reviewRepo.save(Review.builder()
+        String text = comment == null || comment.isBlank() ? null : comment.trim();
+        if (text != null && text.length() > MAX_COMMENT) {
+            throw new RuntimeException("Отзыв слишком длинный (максимум " + MAX_COMMENT + " символов)");
+        }
+
+        Review saved = reviewRepo.save(Review.builder()
             .appointment(a)
             .client(currentUser)
             .employee(a.getEmployee())
             .rating(rating)
-            .comment(comment)
+            .comment(text)
             .build());
+
+        notifyLowRating(saved);
+        return saved;
     }
 
-    /** Все отзывы (для ADMIN/OWNER) */
-    public List<Review> getAll() {
-        return reviewRepo.findAllByOrderByCreatedAtDesc();
+    /** Плохую оценку владелец должен увидеть сразу, а не когда зайдёт в раздел */
+    private void notifyLowRating(Review r) {
+        if (r.getRating() > LOW_RATING) return;
+        try {
+            String text = "⚠️ Низкая оценка " + r.getRating() + "/5"
+                + NL + "Клиент: " + r.getClient().getName()
+                + NL + "Мастер: " + r.getEmployee().getUser().getName()
+                + NL + "Услуга: " + r.getAppointment().getService().getName();
+            if (r.getComment() != null) text += NL + "«" + r.getComment() + "»";
+            telegram.notifyOwner(text);
+        } catch (Exception e) {
+            // уведомление не должно ломать сохранение отзыва
+            log.warn("Не удалось отправить уведомление об отзыве: {}", e.getMessage());
+        }
+    }
+
+    /** Отзывы для текущего пользователя: админ/владелец/клиент — все, мастер — только о себе */
+    @Transactional(readOnly = true)
+    public List<com.salon.dto.response.ReviewResponse> getAllFor(String email) {
+        User user = userRepo.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        List<Review> list = user.getRole() == Role.EMPLOYEE
+            ? employeeRepo.findByUserId(user.getId())
+                .map(e -> reviewRepo.findAllByEmployeeIdOrderByCreatedAtDesc(e.getId()))
+                .orElse(List.of())
+            : reviewRepo.findAllByOrderByCreatedAtDesc();
+        // маппим внутри транзакции — не зависим от open-in-view
+        return list.stream().map(com.salon.dto.response.ReviewResponse::from).toList();
     }
 
     /** Отзывы конкретного сотрудника + средний рейтинг */
+    @Transactional(readOnly = true)
     public Map<String, Object> getByEmployee(Long employeeId) {
         List<Review> reviews = reviewRepo.findAllByEmployeeIdOrderByCreatedAtDesc(employeeId);
         Double avg = reviewRepo.getAverageRatingByEmployee(employeeId);
@@ -72,6 +117,9 @@ public class ReviewService {
     /** Удалить отзыв (ADMIN) */
     @Transactional
     public void delete(Long reviewId) {
+        if (!reviewRepo.existsById(reviewId)) {
+            throw new RuntimeException("Отзыв не найден");
+        }
         reviewRepo.deleteById(reviewId);
     }
 }

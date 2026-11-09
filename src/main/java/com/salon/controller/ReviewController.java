@@ -30,19 +30,25 @@ public class ReviewController {
         if (body.get("appointmentId") == null || body.get("rating") == null) {
             throw new RuntimeException("Выберите сеанс и оценку");
         }
-        Long appointmentId = Long.valueOf(body.get("appointmentId").toString());
-        int rating = Integer.parseInt(body.get("rating").toString());
+        Long appointmentId;
+        int rating;
+        try {
+            appointmentId = Long.valueOf(body.get("appointmentId").toString());
+            rating = Integer.parseInt(body.get("rating").toString());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Оценка должна быть числом от 1 до 5");
+        }
         String comment = body.get("comment") != null ? body.get("comment").toString() : null;
         return ResponseEntity.ok(ReviewResponse.from(reviewService.create(appointmentId, rating, comment, auth.getName())));
     }
 
     /**
-     * Все отзывы — видят все вошедшие (клиенты читают отзывы, мастера — о себе).
+     * Все отзывы — видят админ, владелец и клиенты; мастер видит только отзывы о себе.
      * GET /api/reviews
      */
     @GetMapping
-    public ResponseEntity<List<ReviewResponse>> getAll() {
-        return ResponseEntity.ok(reviewService.getAll().stream().map(ReviewResponse::from).toList());
+    public ResponseEntity<List<ReviewResponse>> getAll(Authentication auth) {
+        return ResponseEntity.ok(reviewService.getAllFor(auth.getName()));
     }
 
     /**

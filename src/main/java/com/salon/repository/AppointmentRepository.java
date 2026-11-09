@@ -17,6 +17,23 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findAllByStatusOrderByStartTimeDesc(AppointmentStatus status);
     List<Appointment> findAllByOrderByStartTimeDesc();
 
+    /** Записи периода сразу со связями — для аналитики (без N+1) */
+    @Query("""
+        SELECT a FROM Appointment a
+        JOIN FETCH a.service JOIN FETCH a.client JOIN FETCH a.employee e JOIN FETCH e.user
+        WHERE a.startTime >= :from AND a.startTime < :to
+    """)
+    List<Appointment> findDetailedInRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    /** История клиентов по завершённым визитам: id, имя, телефон, визитов, первый, последний, потрачено */
+    @Query("""
+        SELECT a.client.id, a.client.name, a.client.phone, COUNT(a), MIN(a.startTime), MAX(a.startTime), SUM(a.service.price)
+        FROM Appointment a
+        WHERE a.status = 'COMPLETED' AND a.startTime < :until
+        GROUP BY a.client.id, a.client.name, a.client.phone
+    """)
+    List<Object[]> findClientHistory(@Param("until") LocalDateTime until);
+
     /** Есть ли у абонемента будущие активные записи (перед передачей другому клиенту) */
     boolean existsBySubscriptionIdAndStatusInAndStartTimeAfter(
         Long subscriptionId, Collection<AppointmentStatus> statuses, LocalDateTime after);

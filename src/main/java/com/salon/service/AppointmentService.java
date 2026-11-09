@@ -6,6 +6,7 @@ import com.salon.entity.*;
 import com.salon.notification.TelegramNotificationService;
 import com.salon.repository.AppointmentRepository;
 import com.salon.repository.EmployeeRepository;
+import com.salon.repository.ReviewRepository;
 import com.salon.repository.SalonServiceRepository;
 import com.salon.repository.SubscriptionRepository;
 import com.salon.repository.UserRepository;
@@ -30,6 +31,7 @@ public class AppointmentService {
     private final SalonServiceRepository salonServiceRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
     private final TelegramNotificationService telegramNotificationService;
     private final ScheduleService scheduleService;
 
@@ -187,6 +189,11 @@ public class AppointmentService {
     public AppointmentResponse updateStatus(Long id, AppointmentStatus newStatus) {
         Appointment appointment = findOrThrow(id);
         appointment.setStatus(newStatus);
+
+        // Отзыв имеет смысл только о завершённом сеансе — если статус откатили, убираем его
+        if (newStatus != AppointmentStatus.COMPLETED) {
+            reviewRepository.deleteByAppointmentId(id);
+        }
 
         if (newStatus == AppointmentStatus.CANCELLED) {
             refundSession(appointment);
