@@ -34,7 +34,7 @@ export default function LoginPage() {
             type="email"
             value={form.email}
             onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-            placeholder="admin@salon.ru"
+            placeholder="Ваш email"
             required
           />
         </div>
@@ -45,7 +45,7 @@ export default function LoginPage() {
             type="password"
             value={form.password}
             onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-            placeholder="••••••••"
+            placeholder="Ваш пароль"
             required
           />
         </div>

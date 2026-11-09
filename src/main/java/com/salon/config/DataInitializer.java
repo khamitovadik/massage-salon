@@ -7,12 +7,14 @@ import com.salon.repository.UserRepository;
 import com.salon.service.SalonSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.security.SecureRandom;
 import java.util.Map;
 
 @Component
@@ -24,6 +26,12 @@ public class DataInitializer implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
     private final SalonSettingsService settingsService;
+
+    @Value("${app.owner.email}")
+    private String ownerEmail;
+
+    @Value("${app.owner.password:}")
+    private String ownerPassword;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -38,26 +46,41 @@ public class DataInitializer implements ApplicationRunner {
             log.info("Телефон салона установлен: +7 747 364 13 96");
         }
 
-        userRepository.findByEmail("admin@salon.ru").ifPresentOrElse(
-            admin -> {
-                // Всегда обновляем пароль при старте — на случай если хеш устарел
-                admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setActive(true);
-                admin.setRole(Role.OWNER);
-                userRepository.save(admin);
-                log.info("Пароль руководителя обновлён: admin@salon.ru / admin123");
+        userRepository.findByEmail(ownerEmail).ifPresentOrElse(
+            owner -> {
+                owner.setActive(true);
+                owner.setRole(Role.OWNER);
+                // Пароль меняем только если он явно задан в OWNER_PASSWORD — иначе не трогаем
+                if (!ownerPassword.isBlank()) {
+                    owner.setPassword(passwordEncoder.encode(ownerPassword));
+                    log.info("Пароль руководителя {} обновлён из OWNER_PASSWORD", ownerEmail);
+                }
+                userRepository.save(owner);
             },
             () -> {
-                User admin = User.builder()
+                boolean generated = ownerPassword.isBlank();
+                String password = generated ? randomPassword() : ownerPassword;
+                userRepository.save(User.builder()
                     .name("Администратор")
-                    .email("admin@salon.ru")
+                    .email(ownerEmail)
                     .phone("+70000000000")
-                    .password(passwordEncoder.encode("admin123"))
+                    .password(passwordEncoder.encode(password))
                     .role(Role.OWNER)
-                    .build();
-                userRepository.save(admin);
-                log.info("Создан аккаунт руководителя: admin@salon.ru / admin123");
+                    .build());
+                if (generated) {
+                    log.warn("Создан аккаунт руководителя {}. Пароль (показан один раз, смените его): {}", ownerEmail, password);
+                } else {
+                    log.info("Создан аккаунт руководителя {}", ownerEmail);
+                }
             }
         );
+    }
+
+    private static String randomPassword() {
+        String chars = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        SecureRandom rnd = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 16; i++) sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        return sb.toString();
     }
 }
