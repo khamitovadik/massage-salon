@@ -21,22 +21,35 @@ public class BroadcastService {
     private final UserRepository userRepository;
     private final SubscriptionRepository subscriptionRepository;
     private final TelegramNotificationService telegram;
+    private final com.salon.repository.AppointmentRepository appointmentRepository;
 
     /**
      * Рассылка всем клиентам у которых задан telegramChatId.
      * @return Map: sent - сколько отправлено, skipped - нет chatId
      */
-    public Map<String, Integer> broadcast(String message, boolean allClients) {
+    /**
+     * scope — филиалы (null — все клиенты салона). Руководитель филиала пишет только тем,
+     * кто записывался в его филиалы или купил там абонемент.
+     */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public Map<String, Integer> broadcast(String message, boolean allClients, java.util.Set<Long> scope) {
         List<User> targets;
+        java.util.Set<Long> branchClients = scope == null ? null : appointmentRepository.findAll().stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch()))
+            .map(a -> a.getClient().getId())
+            .collect(java.util.stream.Collectors.toSet());
 
         if (allClients) {
             targets = userRepository.findAll().stream()
                 .filter(u -> u.getRole() == Role.CLIENT && u.getTelegramChatId() != null)
+                .filter(u -> branchClients == null || branchClients.contains(u.getId()))
                 .toList();
         } else {
             // Только клиенты с активными абонементами
             targets = subscriptionRepository.findAllByOrderByCreatedAtDesc().stream()
                 .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE)
+                .filter(s -> scope == null
+                    || (s.getBranch() != null ? scope.contains(s.getBranch().getId()) : branchClients.contains(s.getClient().getId())))
                 .map(s -> s.getClient())
                 .filter(u -> u.getTelegramChatId() != null)
                 .distinct()

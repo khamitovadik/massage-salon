@@ -26,6 +26,7 @@ public class DataInitializer implements ApplicationRunner {
     private final PasswordEncoder passwordEncoder;
     private final JdbcTemplate jdbcTemplate;
     private final SalonSettingsService settingsService;
+    private final com.salon.repository.BranchRepository branchRepository;
 
     @Value("${app.owner.email}")
     private String ownerEmail;
@@ -45,6 +46,8 @@ public class DataInitializer implements ApplicationRunner {
             settingsService.update(Map.of("phone", "+7 747 364 13 96"));
             log.info("Телефон салона установлен: +7 747 364 13 96");
         }
+
+        createFirstBranch();
 
         userRepository.findByEmail(ownerEmail).ifPresentOrElse(
             owner -> {
@@ -74,6 +77,35 @@ public class DataInitializer implements ApplicationRunner {
                 }
             }
         );
+    }
+
+    /**
+     * Переход на филиалы: при первом запуске создаём «Основной филиал» из настроек салона
+     * и относим к нему все существующие записи, абонементы, мастеров и руководителей.
+     * Дальше ничего не трогаем — филиалы ведёт владелец.
+     */
+    private void createFirstBranch() {
+        if (branchRepository.count() > 0) return;
+        SalonSettings s = settingsService.get();
+        com.salon.entity.Branch b = new com.salon.entity.Branch();
+        b.setName("Основной филиал");
+        b.setAddress(s.getAddress());
+        b.setPhone(s.getPhone());
+        b.setWorkingHours(s.getWorkingHours());
+        b.setActive(true);
+        b.setManagers(new java.util.HashSet<>());
+        b.setCreatedAt(java.time.LocalDateTime.now());
+        Long id = branchRepository.save(b).getId();
+
+        int appts = jdbcTemplate.update("UPDATE appointments SET branch_id = ? WHERE branch_id IS NULL", id);
+        int subs = jdbcTemplate.update("UPDATE subscriptions SET branch_id = ? WHERE branch_id IS NULL", id);
+        int emps = jdbcTemplate.update("INSERT INTO branch_employees (employee_id, branch_id) "
+            + "SELECT e.id, ? FROM employees e WHERE NOT EXISTS "
+            + "(SELECT 1 FROM branch_employees be WHERE be.employee_id = e.id)", id);
+        int admins = jdbcTemplate.update("INSERT INTO branch_managers (branch_id, user_id) "
+            + "SELECT ?, u.id FROM users u WHERE u.role = 'ADMIN'", id);
+        log.info("Создан «Основной филиал» (id={}): записей {}, абонементов {}, мастеров {}, руководителей {}",
+            id, appts, subs, emps, admins);
     }
 
     private static String randomPassword() {

@@ -24,6 +24,7 @@ public class ReviewService {
     private final UserRepository userRepo;
     private final EmployeeRepository employeeRepo;
     private final TelegramNotificationService telegram;
+    private final BranchAccessService access;
 
     private static final String NL = System.lineSeparator();
     private static final int MAX_COMMENT = 1000;
@@ -81,7 +82,8 @@ public class ReviewService {
                 + NL + "Мастер: " + r.getEmployee().getUser().getName()
                 + NL + "Услуга: " + r.getAppointment().getService().getName();
             if (r.getComment() != null) text += NL + "«" + r.getComment() + "»";
-            telegram.notifyOwner(text);
+            if (r.getAppointment().getBranch() != null) text += NL + "Филиал: " + r.getAppointment().getBranch().getName();
+            telegram.notifyBranch(r.getAppointment().getBranch(), text);
         } catch (Exception e) {
             // уведомление не должно ломать сохранение отзыва
             log.warn("Не удалось отправить уведомление об отзыве: {}", e.getMessage());
@@ -90,14 +92,18 @@ public class ReviewService {
 
     /** Отзывы для текущего пользователя: админ/владелец/клиент — все, мастер — только о себе */
     @Transactional(readOnly = true)
-    public List<com.salon.dto.response.ReviewResponse> getAllFor(String email) {
+    public List<com.salon.dto.response.ReviewResponse> getAllFor(String email, Long branchId) {
         User user = userRepo.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-        List<Review> list = user.getRole() == Role.EMPLOYEE
+        java.util.Set<Long> scope = user.getRole() == Role.ADMIN || user.getRole() == Role.OWNER
+            ? access.scope(email, branchId)
+            : (branchId == null ? null : java.util.Set.of(branchId));
+        List<Review> list = (user.getRole() == Role.EMPLOYEE
             ? employeeRepo.findByUserId(user.getId())
                 .map(e -> reviewRepo.findAllByEmployeeIdOrderByCreatedAtDesc(e.getId()))
-                .orElse(List.of())
-            : reviewRepo.findAllByOrderByCreatedAtDesc();
+                .orElse(List.<Review>of())
+            : reviewRepo.findAllByOrderByCreatedAtDesc())
+            .stream().filter(r -> BranchAccessService.inScope(scope, r.getAppointment().getBranch())).toList();
         // маппим внутри транзакции — не зависим от open-in-view
         return list.stream().map(com.salon.dto.response.ReviewResponse::from).toList();
     }
@@ -116,10 +122,9 @@ public class ReviewService {
 
     /** Удалить отзыв (ADMIN) */
     @Transactional
-    public void delete(Long reviewId) {
-        if (!reviewRepo.existsById(reviewId)) {
-            throw new RuntimeException("Отзыв не найден");
-        }
+    public void delete(Long reviewId, String email) {
+        Review r = reviewRepo.findById(reviewId).orElseThrow(() -> new RuntimeException("Отзыв не найден"));
+        if (access.user(email).getRole() == Role.ADMIN) access.assertCanManage(email, r.getAppointment());
         reviewRepo.deleteById(reviewId);
     }
 }

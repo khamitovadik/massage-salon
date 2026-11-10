@@ -19,6 +19,7 @@ import java.util.List;
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
+    private final com.salon.service.BranchAccessService access;
 
     /**
      * Создать абонемент.
@@ -57,8 +58,9 @@ public class SubscriptionController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<List<SubscriptionResponse>> getAll() {
-        return ResponseEntity.ok(subscriptionService.getAll());
+    public ResponseEntity<List<SubscriptionResponse>> getAll(
+            @RequestParam(required = false) Long branchId, Authentication auth) {
+        return ResponseEntity.ok(subscriptionService.getAll(access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -87,8 +89,10 @@ public class SubscriptionController {
      */
     @GetMapping("/pending")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<List<SubscriptionResponse>> getPending() {
-        return ResponseEntity.ok(subscriptionService.getByStatus(SubscriptionStatus.PENDING));
+    public ResponseEntity<List<SubscriptionResponse>> getPending(
+            @RequestParam(required = false) Long branchId, Authentication auth) {
+        return ResponseEntity.ok(subscriptionService.getByStatus(SubscriptionStatus.PENDING,
+            access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -97,7 +101,8 @@ public class SubscriptionController {
      */
     @PatchMapping("/{id}/approve")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<SubscriptionResponse> approve(@PathVariable Long id) {
+    public ResponseEntity<SubscriptionResponse> approve(@PathVariable Long id, Authentication auth) {
+        subscriptionService.assertCanManage(id, auth.getName());
         return ResponseEntity.ok(subscriptionService.approve(id));
     }
 
@@ -109,7 +114,9 @@ public class SubscriptionController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<SubscriptionResponse> reject(
             @PathVariable Long id,
-            @RequestParam(required = false) String reason) {
+            @RequestParam(required = false) String reason,
+            Authentication auth) {
+        subscriptionService.assertCanManage(id, auth.getName());
         return ResponseEntity.ok(subscriptionService.reject(id, reason));
     }
 
@@ -160,7 +167,8 @@ public class SubscriptionController {
      */
     @PatchMapping("/{id}/cancel")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<SubscriptionResponse> cancel(@PathVariable Long id) {
+    public ResponseEntity<SubscriptionResponse> cancel(@PathVariable Long id, Authentication auth) {
+        subscriptionService.assertCanManage(id, auth.getName());
         return ResponseEntity.ok(subscriptionService.cancel(id));
     }
 }

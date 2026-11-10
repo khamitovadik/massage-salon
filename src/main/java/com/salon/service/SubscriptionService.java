@@ -27,6 +27,8 @@ public class SubscriptionService {
     private final SalonServiceRepository salonServiceRepository;
     private final AppointmentRepository appointmentRepository;
     private final SalonSettingsService settingsService;
+    private final BranchAccessService access;
+    private final com.salon.repository.BranchRepository branchRepository;
 
     /**
      * Создать абонемент.
@@ -93,11 +95,42 @@ public class SubscriptionService {
             .startDate(start)
             .expiryDate(expiry)
             .notes(req.getNotes())
+            .branch(resolveBranch(req.getBranchId(), currentUser))
             .status(staff ? SubscriptionStatus.OFFERED : SubscriptionStatus.PENDING)
             .build();
 
         log.info("Абонемент {} для клиента {} создан со статусом {}", type, client.getEmail(), subscription.getStatus());
         return SubscriptionResponse.from(subscriptionRepository.save(subscription));
+    }
+
+    /**
+     * Филиал продажи: указанный; иначе единственный филиал руководителя; иначе единственный филиал салона;
+     * иначе не задан (абонемент всё равно действует везде).
+     */
+    private com.salon.entity.Branch resolveBranch(Long branchId, User currentUser) {
+        if (branchId != null) {
+            if (currentUser.getRole() == Role.ADMIN) access.assertManages(currentUser.getEmail(), branchId);
+            return branchRepository.findById(branchId).orElseThrow(() -> new RuntimeException("Филиал не найден"));
+        }
+        if (currentUser.getRole() == Role.ADMIN) {
+            var mine = branchRepository.findAllByManagers_IdOrderByIdAsc(currentUser.getId());
+            if (mine.size() == 1) return mine.get(0);
+        }
+        var active = branchRepository.findAllByActiveTrueOrderByIdAsc();
+        return active.size() == 1 ? active.get(0) : null;
+    }
+
+    /** Руководитель работает только с абонементами своих филиалов (и с абонементами без филиала) */
+    @Transactional(readOnly = true)
+    public void assertCanManage(Long id, String email) {
+        Subscription s = findOrThrow(id);
+        if (s.getBranch() != null && access.user(email).getRole() == Role.ADMIN) {
+            access.assertManages(email, s.getBranch().getId());
+        }
+    }
+
+    private static boolean visible(Subscription s, java.util.Set<Long> scope) {
+        return scope == null || s.getBranch() == null || scope.contains(s.getBranch().getId());
     }
 
     /** Мои абонементы (для CLIENT) */
@@ -118,8 +151,10 @@ public class SubscriptionService {
     }
 
     /** Все абонементы (ADMIN/OWNER) */
-    public List<SubscriptionResponse> getAll() {
-        return subscriptionRepository.findAllByOrderByCreatedAtDesc()
+    @Transactional(readOnly = true)
+    public List<SubscriptionResponse> getAll(java.util.Set<Long> scope) {
+        return subscriptionRepository.findAllByOrderByCreatedAtDesc().stream()
+            .filter(s -> visible(s, scope)).toList()
             .stream().map(SubscriptionResponse::from).toList();
     }
 
@@ -135,8 +170,10 @@ public class SubscriptionService {
     }
 
     /** Получить абонементы по статусу (для админа — видеть PENDING запросы) */
-    public List<SubscriptionResponse> getByStatus(SubscriptionStatus status) {
-        return subscriptionRepository.findAllByStatusOrderByCreatedAtDesc(status)
+    @Transactional(readOnly = true)
+    public List<SubscriptionResponse> getByStatus(SubscriptionStatus status, java.util.Set<Long> scope) {
+        return subscriptionRepository.findAllByStatusOrderByCreatedAtDesc(status).stream()
+            .filter(s -> visible(s, scope)).toList()
             .stream().map(SubscriptionResponse::from).toList();
     }
 

@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +35,8 @@ public class AppointmentService {
     private final ReviewRepository reviewRepository;
     private final TelegramNotificationService telegramNotificationService;
     private final ScheduleService scheduleService;
+    private final BranchAccessService access;
+    private final com.salon.repository.BranchRepository branchRepository;
 
     /**
      * Создать запись.
@@ -71,10 +74,14 @@ public class AppointmentService {
             throw new RuntimeException("Услуга недоступна");
         }
 
+        com.salon.entity.Branch branch = resolveBranch(req.getBranchId(), employee);
+        // Руководитель филиала записывает только в свои филиалы
+        if (currentUser.getRole() == Role.ADMIN) access.assertManages(currentUserEmail, branch.getId());
+
         LocalDateTime startTime = req.getStartTime();
         LocalDateTime endTime = startTime.plusMinutes(service.getDurationMinutes());
 
-        scheduleService.assertBookable(employee.getId(), startTime, endTime);
+        scheduleService.assertBookable(employee.getId(), startTime, endTime, branch.getId());
 
         // Проверка пересечения времени
         if (appointmentRepository.hasConflict(employee.getId(), startTime, endTime)) {
@@ -124,6 +131,7 @@ public class AppointmentService {
             .endTime(endTime)
             .comment(req.getComment())
             .subscription(subscription)  // ✅ НОВОЕ
+            .branch(branch)
             .build();
 
         appointmentRepository.save(appointment);
@@ -134,6 +142,28 @@ public class AppointmentService {
         return AppointmentResponse.from(appointment);
     }
 
+    /**
+     * Филиал записи: указанный (мастер должен в нём работать); иначе единственный филиал мастера;
+     * иначе единственный работающий филиал салона.
+     */
+    private com.salon.entity.Branch resolveBranch(Long branchId, Employee employee) {
+        if (branchId != null) {
+            com.salon.entity.Branch b = branchRepository.findById(branchId)
+                .orElseThrow(() -> new RuntimeException("Филиал не найден"));
+            if (!b.isActive()) throw new RuntimeException("Филиал закрыт");
+            if (!employee.getBranches().isEmpty()
+                    && employee.getBranches().stream().noneMatch(x -> x.getId().equals(branchId))) {
+                throw new RuntimeException("Мастер не работает в этом филиале");
+            }
+            return b;
+        }
+        var empActive = employee.getBranches().stream().filter(com.salon.entity.Branch::isActive).toList();
+        if (empActive.size() == 1) return empActive.get(0);
+        var active = branchRepository.findAllByActiveTrueOrderByIdAsc();
+        if (active.size() == 1) return active.get(0);
+        throw new RuntimeException("Выберите филиал");
+    }
+
     /** Мои записи (для CLIENT) */
     public List<AppointmentResponse> getMyAppointments(String email) {
         User user = userRepository.findByEmail(email)
@@ -142,15 +172,20 @@ public class AppointmentService {
             .stream().map(AppointmentResponse::from).toList();
     }
 
-    /** Все записи (для ADMIN/OWNER) */
-    public List<AppointmentResponse> getAll() {
-        return appointmentRepository.findAllByOrderByStartTimeDesc()
-            .stream().map(AppointmentResponse::from).toList();
+    /** Все записи (для ADMIN/OWNER) — в пределах своих филиалов */
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getAll(Set<Long> scope) {
+        return appointmentRepository.findAllByOrderByStartTimeDesc().stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch()))
+            .map(AppointmentResponse::from).toList();
     }
 
     /** ✅ Все записи с фильтром по датам (для админ-панели) */
-    public List<AppointmentResponse> getAppointmentsByDateRange(LocalDate dateFrom, LocalDate dateTo) {
-        List<Appointment> allAppointments = appointmentRepository.findAllByOrderByStartTimeDesc();
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getAppointmentsByDateRange(LocalDate dateFrom, LocalDate dateTo, Set<Long> scope) {
+        List<Appointment> allAppointments = appointmentRepository.findAllByOrderByStartTimeDesc().stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch()))
+            .toList();
 
         // Если даты не переданы - вернуть все
         if (dateFrom == null && dateTo == null) {
@@ -179,15 +214,19 @@ public class AppointmentService {
             .stream().map(AppointmentResponse::from).toList();
     }
 
-    /** Получить одну запись */
-    public AppointmentResponse getById(Long id) {
-        return AppointmentResponse.from(findOrThrow(id));
+    /** Получить одну запись; руководитель — только своего филиала */
+    @Transactional(readOnly = true)
+    public AppointmentResponse getById(Long id, String email) {
+        Appointment a = findOrThrow(id);
+        if (access.user(email).getRole() == Role.ADMIN) access.assertCanManage(email, a);
+        return AppointmentResponse.from(a);
     }
 
     /** Изменить статус записи (ADMIN/OWNER) */
     @Transactional
-    public AppointmentResponse updateStatus(Long id, AppointmentStatus newStatus) {
+    public AppointmentResponse updateStatus(Long id, AppointmentStatus newStatus, String email) {
         Appointment appointment = findOrThrow(id);
+        access.assertCanManage(email, appointment);
         appointment.setStatus(newStatus);
 
         // Отзыв имеет смысл только о завершённом сеансе — если статус откатили, убираем его
@@ -221,6 +260,7 @@ public class AppointmentService {
         if (!isOwner && !isAdmin) {
             throw new RuntimeException("Нет прав для отмены этой записи");
         }
+        if (!isOwner && currentUser.getRole() == Role.ADMIN) access.assertCanManage(currentUserEmail, appointment);
 
         if (appointment.getStatus() == AppointmentStatus.COMPLETED) {
             throw new RuntimeException("Нельзя отменить завершённую запись");
@@ -284,10 +324,12 @@ public class AppointmentService {
     /**
      * 📊 Получить все записи за период (для графика)
      */
-    public List<AppointmentResponse> getAppointmentsBetween(LocalDateTime from, LocalDateTime to) {
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getAppointmentsBetween(LocalDateTime from, LocalDateTime to, Set<Long> scope) {
         log.info("Получение всех записей за период с {} по {}", from, to);
         return appointmentRepository.findAllInRange(from, to)
             .stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch()))
             .map(AppointmentResponse::from)
             .toList();
     }
@@ -295,9 +337,11 @@ public class AppointmentService {
     /**
      * ✅ Получить ТОЛЬКО ПОДТВЕРЖДЕННЫЕ записи за период (для расписания)
      */
-    public List<AppointmentResponse> getConfirmedAppointmentsBetween(LocalDateTime from, LocalDateTime to) {
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getConfirmedAppointmentsBetween(LocalDateTime from, LocalDateTime to, Set<Long> scope) {
         log.info("Получение подтвержденных записей за период с {} по {}", from, to);
         return appointmentRepository.findAllInRange(from, to).stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch()))
             .filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED || a.getStatus() == AppointmentStatus.COMPLETED)
             .map(AppointmentResponse::from)
             .toList();

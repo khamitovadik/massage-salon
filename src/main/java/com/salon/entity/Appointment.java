@@ -38,6 +38,11 @@ public class Appointment {
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
+    /** Филиал, в котором проходит сеанс */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
     // Сеанс абонемента уже списан (при подтверждении); при отмене возвращается
     @Column(name = "subscription_charged")
     private Boolean subscriptionCharged;

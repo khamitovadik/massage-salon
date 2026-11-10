@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +23,9 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BranchAccessService access;
+    private final BranchService branchService;
+    private final com.salon.repository.BranchRepository branchRepository;
 
     /**
      * Создать сотрудника: создаём User с ролью EMPLOYEE + Employee профиль.
@@ -29,7 +33,31 @@ public class EmployeeService {
      * добавляем карточку мастера к нему; пароль при этом не меняем.
      */
     @Transactional
-    public EmployeeResponse create(CreateEmployeeRequest req) {
+    public EmployeeResponse create(CreateEmployeeRequest req, String currentEmail) {
+        EmployeeResponse created = createProfile(req);
+        assignBranches(created.getId(), req.getBranchIds(), currentEmail);
+        return EmployeeResponse.from(findOrThrow(created.getId()));
+    }
+
+    /**
+     * Филиалы нового мастера: указанные в запросе; иначе у руководителя — его филиалы;
+     * иначе, если филиал всего один, — он.
+     */
+    private void assignBranches(Long employeeId, List<Long> requested, String currentEmail) {
+        List<Long> ids = requested;
+        if (ids == null || ids.isEmpty()) {
+            Set<Long> scope = access.scope(currentEmail, null);
+            if (scope != null) {
+                ids = List.copyOf(scope);
+            } else {
+                var active = branchRepository.findAllByActiveTrueOrderByIdAsc();
+                ids = active.size() == 1 ? List.of(active.get(0).getId()) : List.of();
+            }
+        }
+        if (!ids.isEmpty()) branchService.setEmployeeBranches(employeeId, ids, currentEmail);
+    }
+
+    private EmployeeResponse createProfile(CreateEmployeeRequest req) {
         User existing = userRepository.findByEmail(req.getEmail()).orElse(null);
         if (existing != null) {
             return attachToExistingUser(existing, req);
@@ -84,18 +112,33 @@ public class EmployeeService {
     }
 
     /** Список всех активных сотрудников */
-    public List<EmployeeResponse> getAllActive() {
-        return employeeRepository.findAllByActiveTrue()
-            .stream().map(EmployeeResponse::from).toList();
+    @Transactional(readOnly = true)
+    public List<EmployeeResponse> getAllActive(Long branchId) {
+        return employeeRepository.findAllByActiveTrue().stream()
+            .filter(e -> branchId == null || e.getBranches().stream().anyMatch(b -> b.getId().equals(branchId)))
+            .map(EmployeeResponse::from).toList();
     }
 
     /** Все сотрудники (для ADMIN/OWNER — включая неактивных) */
-    public List<EmployeeResponse> getAll() {
-        return employeeRepository.findAll()
-            .stream().map(EmployeeResponse::from).toList();
+    @Transactional(readOnly = true)
+    public List<EmployeeResponse> getAll(String email, Long branchId) {
+        Set<Long> scope = access.scope(email, branchId);
+        boolean admin = access.user(email).getRole() == Role.ADMIN;
+        return employeeRepository.findAll().stream()
+            .filter(e -> scope == null
+                || e.getBranches().stream().anyMatch(b -> scope.contains(b.getId()))
+                // мастера без филиала руководитель видит, чтобы добавить к себе
+                || (admin && branchId == null && e.getBranches().isEmpty()))
+            .map(EmployeeResponse::from).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public void assertCanManage(Long id, String email) {
+        access.assertCanManage(email, findOrThrow(id));
     }
 
     /** Один сотрудник по id */
+    @Transactional(readOnly = true)
     public EmployeeResponse getById(Long id) {
         return EmployeeResponse.from(findOrThrow(id));
     }

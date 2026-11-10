@@ -21,6 +21,7 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final com.salon.service.BranchAccessService access;
 
     /**
      * Создать запись — клиент себе; ADMIN/OWNER/EMPLOYEE (мастер) — клиенту по clientId
@@ -58,8 +59,9 @@ public class AppointmentController {
      */
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<List<AppointmentResponse>> getAll() {
-        return ResponseEntity.ok(appointmentService.getAll());
+    public ResponseEntity<List<AppointmentResponse>> getAll(
+            @RequestParam(required = false) Long branchId, Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getAll(access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -70,8 +72,11 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<List<AppointmentResponse>> filterByDate(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsByDateRange(dateFrom, dateTo));
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) Long branchId,
+            Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsByDateRange(dateFrom, dateTo,
+            access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -90,8 +95,8 @@ public class AppointmentController {
      */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
-    public ResponseEntity<AppointmentResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(appointmentService.getById(id));
+    public ResponseEntity<AppointmentResponse> getById(@PathVariable Long id, Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getById(id, auth.getName()));
     }
 
     /**
@@ -102,8 +107,9 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<AppointmentResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam AppointmentStatus status) {
-        return ResponseEntity.ok(appointmentService.updateStatus(id, status));
+            @RequestParam AppointmentStatus status,
+            Authentication auth) {
+        return ResponseEntity.ok(appointmentService.updateStatus(id, status, auth.getName()));
     }
 
     /**
@@ -126,8 +132,10 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<List<AppointmentResponse>> graphAll(
             @RequestParam java.time.LocalDateTime from,
-            @RequestParam java.time.LocalDateTime to) {
-        return ResponseEntity.ok(appointmentService.getAppointmentsBetween(from, to));
+            @RequestParam java.time.LocalDateTime to,
+            @RequestParam(required = false) Long branchId,
+            Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getAppointmentsBetween(from, to, access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -139,8 +147,10 @@ public class AppointmentController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<List<AppointmentResponse>> scheduleAll(
             @RequestParam java.time.LocalDateTime from,
-            @RequestParam java.time.LocalDateTime to) {
-        return ResponseEntity.ok(appointmentService.getConfirmedAppointmentsBetween(from, to));
+            @RequestParam java.time.LocalDateTime to,
+            @RequestParam(required = false) Long branchId,
+            Authentication auth) {
+        return ResponseEntity.ok(appointmentService.getConfirmedAppointmentsBetween(from, to, access.scope(auth.getName(), branchId)));
     }
 
     /**

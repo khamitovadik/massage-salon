@@ -15,6 +15,9 @@ public class EmployeeResponse {
     private String specialization;
     private String description;
     private boolean active;
+    /** Филиалы мастера */
+    private java.util.List<Long> branchIds;
+    private java.util.List<String> branchNames;
 
     public static EmployeeResponse from(Employee e) {
         return EmployeeResponse.builder()
@@ -26,6 +29,10 @@ public class EmployeeResponse {
             .specialization(e.getSpecialization())
             .description(e.getDescription())
             .active(e.isActive())
+            .branchIds(e.getBranches().stream().map(com.salon.entity.Branch::getId).sorted().toList())
+            .branchNames(e.getBranches().stream()
+                .sorted(java.util.Comparator.comparing(com.salon.entity.Branch::getId))
+                .map(com.salon.entity.Branch::getName).toList())
             .build();
     }
 }

@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final com.salon.service.BranchService branchService;
 
     /**
      * Создать сотрудника — только ADMIN или OWNER
@@ -25,8 +27,8 @@ public class EmployeeController {
      */
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<EmployeeResponse> create(@Valid @RequestBody CreateEmployeeRequest req) {
-        return ResponseEntity.ok(employeeService.create(req));
+    public ResponseEntity<EmployeeResponse> create(@Valid @RequestBody CreateEmployeeRequest req, Authentication auth) {
+        return ResponseEntity.ok(employeeService.create(req, auth.getName()));
     }
 
     /**
@@ -34,8 +36,8 @@ public class EmployeeController {
      * GET /api/employees
      */
     @GetMapping
-    public ResponseEntity<List<EmployeeResponse>> getActive() {
-        return ResponseEntity.ok(employeeService.getAllActive());
+    public ResponseEntity<List<EmployeeResponse>> getActive(@RequestParam(required = false) Long branchId) {
+        return ResponseEntity.ok(employeeService.getAllActive(branchId));
     }
 
     /**
@@ -44,8 +46,9 @@ public class EmployeeController {
      */
     @GetMapping("/all")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<List<EmployeeResponse>> getAll() {
-        return ResponseEntity.ok(employeeService.getAll());
+    public ResponseEntity<List<EmployeeResponse>> getAll(
+            @RequestParam(required = false) Long branchId, Authentication auth) {
+        return ResponseEntity.ok(employeeService.getAll(auth.getName(), branchId));
     }
 
     /**
@@ -65,7 +68,9 @@ public class EmployeeController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<EmployeeResponse> update(
             @PathVariable Long id,
-            @RequestBody UpdateEmployeeRequest req) {
+            @RequestBody UpdateEmployeeRequest req,
+            Authentication auth) {
+        employeeService.assertCanManage(id, auth.getName());
         return ResponseEntity.ok(employeeService.update(id, req));
     }
 
@@ -75,8 +80,19 @@ public class EmployeeController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<Void> deactivate(@PathVariable Long id) {
+    public ResponseEntity<Void> deactivate(@PathVariable Long id, Authentication auth) {
+        employeeService.assertCanManage(id, auth.getName());
         employeeService.deactivate(id);
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Филиалы мастера — владелец задаёт любые, руководитель меняет только свои.
+     * PUT /api/employees/{id}/branches  Body: [branchId, ...]
+     */
+    @PutMapping("/{id}/branches")
+    @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
+    public ResponseEntity<List<Long>> setBranches(@PathVariable Long id, @RequestBody List<Long> branchIds, Authentication auth) {
+        return ResponseEntity.ok(branchService.setEmployeeBranches(id, branchIds, auth.getName()));
     }
 }

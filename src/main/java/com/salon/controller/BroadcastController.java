@@ -20,6 +20,7 @@ import java.util.Map;
 public class BroadcastController {
 
     private final BroadcastService broadcastService;
+    private final com.salon.service.BranchAccessService access;
 
     /**
      * Рассылка сообщения клиентам через Telegram.
@@ -27,7 +28,11 @@ public class BroadcastController {
      * Body: { "message": "Акция! 20% скидка...", "allClients": true }
      */
     @PostMapping
-    public ResponseEntity<Map<String, Integer>> broadcast(@Valid @RequestBody BroadcastRequest req) {
-        return ResponseEntity.ok(broadcastService.broadcast(req.getMessage(), req.isAllClients()));
+    public ResponseEntity<Map<String, Integer>> broadcast(
+            @Valid @RequestBody BroadcastRequest req,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Long branchId,
+            org.springframework.security.core.Authentication auth) {
+        return ResponseEntity.ok(broadcastService.broadcast(req.getMessage(), req.isAllClients(),
+            access.scope(auth.getName(), branchId)));
     }
 }

@@ -34,4 +34,7 @@ public class CreateSubscriptionRequest {
     private LocalDate expiryDate;
 
     private String notes;
+
+    /** Филиал, где оформлен абонемент (для выручки филиала). Действует во всех филиалах */
+    private Long branchId;
 }

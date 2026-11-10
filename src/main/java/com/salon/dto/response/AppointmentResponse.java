@@ -36,6 +36,10 @@ public class AppointmentResponse {
     private Long subscriptionId;
     private String subscriptionStatus;
 
+    private Long branchId;
+    private String branchName;
+    private String branchAddress;
+
     public static AppointmentResponse from(Appointment a) {
         return AppointmentResponse.builder()
             .id(a.getId())
@@ -57,6 +61,9 @@ public class AppointmentResponse {
             // ✅ НОВОЕ: добавить информацию об абонементе
             .subscriptionId(a.getSubscription() != null ? a.getSubscription().getId() : null)
             .subscriptionStatus(a.getSubscription() != null ? a.getSubscription().getStatus().toString() : null)
+            .branchId(a.getBranch() != null ? a.getBranch().getId() : null)
+            .branchName(a.getBranch() != null ? a.getBranch().getName() : null)
+            .branchAddress(a.getBranch() != null ? a.getBranch().getAddress() : null)
             .build();
     }
 }

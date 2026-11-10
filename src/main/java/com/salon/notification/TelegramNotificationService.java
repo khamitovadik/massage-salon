@@ -47,7 +47,25 @@ public class TelegramNotificationService {
         } else {
             log.info("[Telegram→{}] (chatId не задан): {}", a.getEmployee().getUser().getName(), msg);
         }
-        notifyOwner("👤 " + a.getEmployee().getUser().getName() + "\n" + msg);
+        String where = a.getBranch() != null ? "🏠 " + a.getBranch().getName() + "\n" : "";
+        notifyBranch(a.getBranch(), where + "👤 " + a.getEmployee().getUser().getName() + "\n" + msg);
+    }
+
+    /**
+     * Уведомить владельца (TELEGRAM_OWNER_CHAT_IDS) и руководителей филиала, подключивших Telegram.
+     * Один и тот же chat ID получает сообщение один раз.
+     */
+    public void notifyBranch(com.salon.entity.Branch branch, String message) {
+        java.util.Set<String> chats = new java.util.LinkedHashSet<>();
+        if (ownerChatId != null) {
+            for (String id : ownerChatId.split(",")) if (!id.isBlank()) chats.add(id.trim());
+        }
+        if (branch != null) {
+            for (var m : branch.getManagers()) {
+                if (m.getTelegramChatId() != null) chats.add(m.getTelegramChatId().toString());
+            }
+        }
+        chats.forEach(id -> sendMessage(id, message));
     }
 
     /** Напоминание клиенту о записи за 2 часа */
@@ -56,10 +74,11 @@ public class TelegramNotificationService {
             "⏰ *Напоминание!*\n" +
             "Через 2 часа у вас запись: *%s*\n" +
             "Мастер: %s\n" +
-            "Время: %s",
+            "Время: %s%s",
             a.getService().getName(),
             a.getEmployee().getUser().getName(),
-            a.getStartTime().format(FMT)
+            a.getStartTime().format(FMT),
+            branchLine(a.getBranch())
         );
 
         Long chatId = a.getClient().getTelegramChatId();
@@ -68,6 +87,13 @@ public class TelegramNotificationService {
         } else {
             log.info("[Reminder→{}] (chatId не задан): {}", a.getClient().getName(), msg);
         }
+    }
+
+    /** Адрес филиала в напоминании — при нескольких точках клиент должен знать, куда ехать */
+    private static String branchLine(com.salon.entity.Branch b) {
+        if (b == null) return "";
+        String addr = b.getAddress() != null ? b.getAddress() : b.getName();
+        return "\nАдрес: " + addr;
     }
 
     /** Рассылка произвольного сообщения на конкретный chat ID */

@@ -29,6 +29,11 @@ public class Subscription {
     @JoinColumn(name = "service_id", nullable = false)
     private SalonService service;
 
+    /** Филиал, где оформлен абонемент (для выручки филиала); действует во всех филиалах */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id")
+    private Branch branch;
+
     /** Всего сеансов в абонементе */
     @Column(name = "total_sessions", nullable = false)
     private Integer totalSessions;

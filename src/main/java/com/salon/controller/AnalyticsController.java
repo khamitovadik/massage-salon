@@ -23,6 +23,7 @@ public class AnalyticsController {
 
     private final AnalyticsService analyticsService;
     private final InsightsService insightsService;
+    private final com.salon.service.BranchAccessService access;
 
     /**
      * GET /api/analytics/summary?from=2026-06-01&to=2026-06-30
@@ -30,8 +31,10 @@ public class AnalyticsController {
     @GetMapping("/summary")
     public ResponseEntity<AnalyticsResponse> getSummary(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(analyticsService.getSummary(from, to));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long branchId,
+            org.springframework.security.core.Authentication auth) {
+        return ResponseEntity.ok(analyticsService.getSummary(from, to, access.scope(auth.getName(), branchId)));
     }
 
     /**
@@ -41,7 +44,9 @@ public class AnalyticsController {
     @GetMapping("/insights")
     public ResponseEntity<InsightsResponse> getInsights(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(insightsService.compute(from, to));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long branchId,
+            org.springframework.security.core.Authentication auth) {
+        return ResponseEntity.ok(insightsService.compute(from, to, access.scope(auth.getName(), branchId)));
     }
 }

@@ -38,7 +38,7 @@ public class InsightsService {
     private final SubscriptionRepository subscriptionRepo;
 
     @Transactional(readOnly = true)
-    public InsightsResponse compute(LocalDate from, LocalDate to) {
+    public InsightsResponse compute(LocalDate from, LocalDate to, Set<Long> scope) {
         if (to.isBefore(from)) throw new RuntimeException("Дата «по» раньше даты «с»");
 
         LocalDateTime fromDt = from.atStartOfDay();
@@ -46,8 +46,10 @@ public class InsightsService {
         long len = ChronoUnit.DAYS.between(from, to) + 1;
         LocalDateTime prevFromDt = fromDt.minusDays(len);
 
-        List<Appointment> cur = appointmentRepo.findDetailedInRange(fromDt, toDt);
-        List<Appointment> prev = appointmentRepo.findDetailedInRange(prevFromDt, fromDt);
+        List<Appointment> cur = appointmentRepo.findDetailedInRange(fromDt, toDt).stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch())).toList();
+        List<Appointment> prev = appointmentRepo.findDetailedInRange(prevFromDt, fromDt).stream()
+            .filter(a -> BranchAccessService.inScope(scope, a.getBranch())).toList();
 
         Kpi curKpi = kpi(cur);
         Kpi prevKpi = kpi(prev);
@@ -91,6 +93,7 @@ public class InsightsService {
         // ---- мастера + рейтинг
         Map<Long, List<Integer>> ratings = new HashMap<>();
         for (Object[] r : reviewRepo.findRatingsInRange(fromDt, toDt)) {
+            if (scope != null && (r[2] == null || !scope.contains(((Number) r[2]).longValue()))) continue;
             ratings.computeIfAbsent(((Number) r[0]).longValue(), k -> new ArrayList<>()).add(((Number) r[1]).intValue());
         }
         Map<Long, List<Appointment>> byEmp = cur.stream().collect(Collectors.groupingBy(a -> a.getEmployee().getId()));
@@ -117,7 +120,8 @@ public class InsightsService {
 
         // ---- клиенты
         LocalDateTime now = LocalDateTime.now();
-        List<Object[]> history = appointmentRepo.findClientHistory(now);
+        List<Object[]> history = appointmentRepo.findClientHistory(now, scope == null,
+            scope == null || scope.isEmpty() ? List.of(-1L) : scope);
         Set<Long> doneClients = done.stream().map(a -> a.getClient().getId()).collect(Collectors.toSet());
         long newClients = 0, returning = 0;
         List<ClientRow> all = new ArrayList<>();
@@ -142,7 +146,9 @@ public class InsightsService {
         // ---- абонементы
         LocalDate today = LocalDate.now();
         var activeSubs = subscriptionRepo.findAllByOrderByCreatedAtDesc().stream()
-            .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE).toList();
+            .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE)
+            .filter(s -> scope == null || s.getBranch() == null || scope.contains(s.getBranch().getId()))
+            .toList();
         long expiring = activeSubs.stream()
             .filter(s -> s.getExpiryDate() != null && !s.getExpiryDate().isAfter(today.plusDays(14))).count();
         long viaSub = done.stream().filter(a -> a.getSubscription() != null).count();

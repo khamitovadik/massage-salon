@@ -28,11 +28,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     /** История клиентов по завершённым визитам: id, имя, телефон, визитов, первый, последний, потрачено */
     @Query("""
         SELECT a.client.id, a.client.name, a.client.phone, COUNT(a), MIN(a.startTime), MAX(a.startTime), SUM(a.service.price)
-        FROM Appointment a
+        FROM Appointment a LEFT JOIN a.branch b
         WHERE a.status = 'COMPLETED' AND a.startTime < :until
+          AND (:allBranches = true OR b.id IN :branchIds)
         GROUP BY a.client.id, a.client.name, a.client.phone
     """)
-    List<Object[]> findClientHistory(@Param("until") LocalDateTime until);
+    List<Object[]> findClientHistory(@Param("until") LocalDateTime until,
+                                     @Param("allBranches") boolean allBranches,
+                                     @Param("branchIds") Collection<Long> branchIds);
 
     /** Есть ли у абонемента будущие активные записи (перед передачей другому клиенту) */
     boolean existsBySubscriptionIdAndStatusInAndStartTimeAfter(

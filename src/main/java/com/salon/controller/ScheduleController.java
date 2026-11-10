@@ -23,6 +23,8 @@ import java.util.Map;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
+    private final com.salon.service.EmployeeService employeeService;
+    private final com.salon.service.BranchAccessService access;
 
     /**
      * Расписание сотрудника (для отображения).
@@ -42,7 +44,9 @@ public class ScheduleController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<List<EmployeeSchedule>> saveSchedule(
             @PathVariable Long employeeId,
-            @RequestBody List<Map<String, Object>> days) {
+            @RequestBody List<Map<String, Object>> days,
+            Authentication auth) {
+        employeeService.assertCanManage(employeeId, auth.getName());
         return ResponseEntity.ok(scheduleService.saveSchedule(employeeId, days));
     }
 
@@ -54,8 +58,9 @@ public class ScheduleController {
     public ResponseEntity<List<String>> getSlots(
             @RequestParam Long employeeId,
             @RequestParam Long serviceId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        return ResponseEntity.ok(scheduleService.getAvailableSlots(employeeId, serviceId, date));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long branchId) {
+        return ResponseEntity.ok(scheduleService.getAvailableSlots(employeeId, serviceId, date, branchId));
     }
 
     /**
@@ -67,9 +72,10 @@ public class ScheduleController {
     public ResponseEntity<List<HourSlotResponse>> getHourly(
             @RequestParam Long employeeId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) Long branchId,
             Authentication auth) {
         boolean staff = auth.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_CLIENT"));
-        return ResponseEntity.ok(scheduleService.getHourlySlots(employeeId, date, staff));
+        return ResponseEntity.ok(scheduleService.getHourlySlots(employeeId, date, staff, branchId));
     }
 
     /**
@@ -81,7 +87,9 @@ public class ScheduleController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<TimeBlock> addBlock(
             @PathVariable Long employeeId,
-            @RequestBody Map<String, String> body) {
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
+        employeeService.assertCanManage(employeeId, auth.getName());
         LocalDate date = LocalDate.parse(body.get("date"));
         LocalTime start = body.get("startTime") != null ? LocalTime.parse(body.get("startTime")) : null;
         LocalTime end = body.get("endTime") != null ? LocalTime.parse(body.get("endTime")) : null;
@@ -96,8 +104,14 @@ public class ScheduleController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER','EMPLOYEE')")
     public ResponseEntity<List<EmployeeWorkDay>> getWorkDays(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-        return ResponseEntity.ok(scheduleService.getWorkDays(from, to));
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
+            @RequestParam(required = false) Long branchId,
+            Authentication auth) {
+        boolean employee = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"));
+        java.util.Set<Long> scope = employee
+            ? (branchId == null ? null : java.util.Set.of(branchId))
+            : access.scope(auth.getName(), branchId);
+        return ResponseEntity.ok(scheduleService.getWorkDays(from, to, scope));
     }
 
     /**
@@ -110,11 +124,15 @@ public class ScheduleController {
     public ResponseEntity<EmployeeWorkDay> saveWorkDay(
             @PathVariable Long employeeId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @RequestBody Map<String, Object> body) {
+            @RequestBody Map<String, Object> body,
+            Authentication auth) {
+        employeeService.assertCanManage(employeeId, auth.getName());
+        Long branchId = body.get("branchId") != null ? Long.valueOf(body.get("branchId").toString()) : null;
+        if (branchId != null) access.assertManages(auth.getName(), branchId);
         boolean working = Boolean.TRUE.equals(body.get("working"));
         LocalTime start = body.get("workStart") != null ? LocalTime.parse((String) body.get("workStart")) : null;
         LocalTime end = body.get("workEnd") != null ? LocalTime.parse((String) body.get("workEnd")) : null;
-        return ResponseEntity.ok(scheduleService.saveWorkDay(employeeId, date, working, start, end));
+        return ResponseEntity.ok(scheduleService.saveWorkDay(employeeId, date, working, start, end, branchId));
     }
 
     /**
@@ -125,7 +143,9 @@ public class ScheduleController {
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
     public ResponseEntity<Void> removeWorkDay(
             @PathVariable Long employeeId,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            Authentication auth) {
+        employeeService.assertCanManage(employeeId, auth.getName());
         scheduleService.removeWorkDay(employeeId, date);
         return ResponseEntity.noContent().build();
     }

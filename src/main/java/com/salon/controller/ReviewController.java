@@ -47,8 +47,9 @@ public class ReviewController {
      * GET /api/reviews
      */
     @GetMapping
-    public ResponseEntity<List<ReviewResponse>> getAll(Authentication auth) {
-        return ResponseEntity.ok(reviewService.getAllFor(auth.getName()));
+    public ResponseEntity<List<ReviewResponse>> getAll(
+            @RequestParam(required = false) Long branchId, Authentication auth) {
+        return ResponseEntity.ok(reviewService.getAllFor(auth.getName(), branchId));
     }
 
     /**
@@ -66,8 +67,8 @@ public class ReviewController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN','OWNER')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        reviewService.delete(id);
+    public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
+        reviewService.delete(id, auth.getName());
         return ResponseEntity.noContent().build();
     }
 }

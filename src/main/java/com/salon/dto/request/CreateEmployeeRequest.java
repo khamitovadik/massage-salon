@@ -20,4 +20,7 @@ public class CreateEmployeeRequest {
 
     private String specialization;
     private String description;
+
+    /** Филиалы мастера; у руководителя филиала по умолчанию — его филиалы */
+    private java.util.List<Long> branchIds;
 }

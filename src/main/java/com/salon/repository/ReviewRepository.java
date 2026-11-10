@@ -19,7 +19,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findAllByOrderByCreatedAtDesc();
 
     /** Оценки по сеансам периода: id мастера, оценка */
-    @Query("SELECT r.employee.id, r.rating FROM Review r WHERE r.appointment.startTime >= :from AND r.appointment.startTime < :to")
+    @Query("SELECT r.employee.id, r.rating, b.id FROM Review r JOIN r.appointment a LEFT JOIN a.branch b "
+         + "WHERE a.startTime >= :from AND a.startTime < :to")
     List<Object[]> findRatingsInRange(@Param("from") java.time.LocalDateTime from, @Param("to") java.time.LocalDateTime to);
 
     @Query("SELECT AVG(r.rating) FROM Review r WHERE r.employee.id = :employeeId")

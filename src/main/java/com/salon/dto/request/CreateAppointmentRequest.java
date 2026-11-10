@@ -27,4 +27,7 @@ public class CreateAppointmentRequest {
     // Если нужно использовать абонемент при создании записи
     // Если не null — при подтверждении записи будет списан сеанс
     private Long subscriptionId;
+
+    // Филиал. Можно не указывать, если мастер работает в одном филиале
+    private Long branchId;
 }

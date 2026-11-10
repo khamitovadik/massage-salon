@@ -36,6 +36,9 @@ public class SubscriptionResponse {
     private String notes;
     private LocalDateTime createdAt;
 
+    private Long branchId;
+    private String branchName;
+
     public static SubscriptionResponse from(Subscription s) {
         return SubscriptionResponse.builder()
             .id(s.getId())
@@ -54,6 +57,8 @@ public class SubscriptionResponse {
             .price(s.getPrice())
             .notes(s.getNotes())
             .createdAt(s.getCreatedAt())
+            .branchId(s.getBranch() != null ? s.getBranch().getId() : null)
+            .branchName(s.getBranch() != null ? s.getBranch().getName() : null)
             .build();
     }
 }

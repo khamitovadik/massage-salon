@@ -37,4 +37,12 @@ public class Employee {
     /** Опыт работы, например "5 лет" */
     @Column(name = "experience")
     private String experience;
+
+    /** Филиалы, в которых работает мастер (один или несколько) */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "branch_employees",
+        joinColumns = @JoinColumn(name = "employee_id"),
+        inverseJoinColumns = @JoinColumn(name = "branch_id"))
+    @Builder.Default
+    private java.util.Set<Branch> branches = new java.util.HashSet<>();
 }

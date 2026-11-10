@@ -52,7 +52,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // /error открыт, иначе любой 404/500 превращается в пустой 403 и причину не видно
                 .requestMatchers("/api/auth/**", "/api/health", "/api/settings", "/error").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/services").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/services", "/api/branches").permitAll()
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

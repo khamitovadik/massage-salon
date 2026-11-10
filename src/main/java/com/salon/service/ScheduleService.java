@@ -49,6 +49,7 @@ public class ScheduleService {
                 .orElseGet(() -> EmployeeSchedule.builder().employee(employee).dayOfWeek(dow).build());
 
             sch.setWorking(working);
+            sch.setBranch(working ? branchFor(employee, d.get("branchId")) : null);
             if (working && d.get("workStart") != null) {
                 sch.setWorkStart(LocalTime.parse((String) d.get("workStart")));
                 sch.setWorkEnd(LocalTime.parse((String) d.get("workEnd")));
@@ -62,15 +63,31 @@ public class ScheduleService {
     }
 
     /** Часы работы по датам (все сотрудники) за период — для календаря */
-    public List<EmployeeWorkDay> getWorkDays(LocalDate from, LocalDate to) {
-        return workDayRepo.findAllByWorkDateBetween(from, to);
+    @Transactional(readOnly = true)
+    public List<EmployeeWorkDay> getWorkDays(LocalDate from, LocalDate to, java.util.Set<Long> scope) {
+        return workDayRepo.findAllByWorkDateBetween(from, to).stream()
+            .filter(d -> scope == null || d.getBranch() == null || scope.contains(d.getBranch().getId()))
+            .toList();
+    }
+
+    /**
+     * Филиал для рабочего дня. Не указан — единственный филиал мастера (или null, если их несколько:
+     * тогда день считается рабочим в любом его филиале). Указан — мастер должен в нём работать.
+     */
+    private com.salon.entity.Branch branchFor(Employee employee, Object branchIdRaw) {
+        if (branchIdRaw == null || branchIdRaw.toString().isBlank()) {
+            return employee.getBranches().size() == 1 ? employee.getBranches().iterator().next() : null;
+        }
+        Long branchId = Long.valueOf(branchIdRaw.toString());
+        return employee.getBranches().stream().filter(b -> b.getId().equals(branchId)).findFirst()
+            .orElseThrow(() -> new RuntimeException("Мастер не работает в этом филиале — сначала добавьте его в филиал"));
     }
 
     /**
      * Задать часы работы сотрудника на дату. working=false — выходной.
      */
     @Transactional
-    public EmployeeWorkDay saveWorkDay(Long employeeId, LocalDate date, boolean working, LocalTime start, LocalTime end) {
+    public EmployeeWorkDay saveWorkDay(Long employeeId, LocalDate date, boolean working, LocalTime start, LocalTime end, Long branchId) {
         Employee employee = employeeRepo.findById(employeeId)
             .orElseThrow(() -> new RuntimeException("Сотрудник не найден"));
         if (working && (start == null || end == null || !start.isBefore(end))) {
@@ -80,6 +97,7 @@ public class ScheduleService {
         EmployeeWorkDay day = workDayRepo.findByEmployee_IdAndWorkDate(employeeId, date)
             .orElseGet(() -> EmployeeWorkDay.builder().employee(employee).workDate(date).build());
         day.setWorking(working);
+        day.setBranch(working ? branchFor(employee, branchId) : null);
         day.setWorkStart(working ? start : null);
         day.setWorkEnd(working ? end : null);
         return workDayRepo.save(day);
@@ -120,9 +138,10 @@ public class ScheduleService {
      * Получить свободные слоты для записи.
      * employeeId — сотрудник, serviceId — услуга (нужна длительность), date — дата.
      */
-    public List<String> getAvailableSlots(Long employeeId, Long serviceId, LocalDate date) {
-        // 1. Рабочие часы на эту дату
-        LocalTime[] hours = workingHours(employeeId, date);
+    @Transactional(readOnly = true)
+    public List<String> getAvailableSlots(Long employeeId, Long serviceId, LocalDate date, Long branchId) {
+        // 1. Рабочие часы на эту дату (в выбранном филиале)
+        LocalTime[] hours = workingHours(employeeId, date, branchId);
         if (hours == null) {
             return List.of(); // выходной
         }
@@ -178,8 +197,9 @@ public class ScheduleService {
      * Часовые окошки мастера на дату: свободные, занятые, недоступные и прошедшие.
      * staffView — показывать имя клиента и услугу в занятых окошках.
      */
-    public List<HourSlotResponse> getHourlySlots(Long employeeId, LocalDate date, boolean staffView) {
-        LocalTime[] hours = workingHours(employeeId, date);
+    @Transactional(readOnly = true)
+    public List<HourSlotResponse> getHourlySlots(Long employeeId, LocalDate date, boolean staffView, Long branchId) {
+        LocalTime[] hours = workingHours(employeeId, date, branchId);
         if (hours == null) return List.of();
 
         List<TimeBlock> blocks = timeBlockRepo.findAllByEmployeeIdAndBlockDate(employeeId, date);
@@ -221,7 +241,7 @@ public class ScheduleService {
      * Проверить, что запись укладывается в рабочее время мастера, не попадает
      * на блокировку и не начинается в прошлом. Бросает RuntimeException с понятным текстом.
      */
-    public void assertBookable(Long employeeId, LocalDateTime start, LocalDateTime end) {
+    public void assertBookable(Long employeeId, LocalDateTime start, LocalDateTime end, Long branchId) {
         if (start.isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Нельзя записаться на прошедшее время");
         }
@@ -229,9 +249,11 @@ public class ScheduleService {
             throw new RuntimeException("Запись возможна только на начало часа");
         }
         LocalDate date = start.toLocalDate();
-        LocalTime[] hours = workingHours(employeeId, date);
+        LocalTime[] hours = workingHours(employeeId, date, branchId);
         if (hours == null) {
-            throw new RuntimeException("У мастера выходной в этот день");
+            throw new RuntimeException(branchId != null && workingHours(employeeId, date, null) != null
+                ? "В этот день мастер работает в другом филиале"
+                : "У мастера выходной в этот день");
         }
         if (start.toLocalTime().isBefore(hours[0]) || !end.toLocalDate().equals(date) || end.toLocalTime().isAfter(hours[1])) {
             throw new RuntimeException("Время вне рабочих часов мастера (" + hours[0] + "–" + hours[1] + ")");
@@ -245,17 +267,32 @@ public class ScheduleService {
      * Рабочие часы мастера на дату: [начало, конец] или null, если выходной.
      * Порядок: график на конкретную дату → недельное расписание → иначе выходной.
      */
-    private LocalTime[] workingHours(Long employeeId, LocalDate date) {
+    private LocalTime[] workingHours(Long employeeId, LocalDate date, Long branchId) {
         EmployeeWorkDay day = workDayRepo.findByEmployee_IdAndWorkDate(employeeId, date).orElse(null);
         if (day != null) {
             if (!day.isWorking() || day.getWorkStart() == null || day.getWorkEnd() == null) return null;
+            if (!worksInBranch(employeeId, day.getBranch(), branchId)) return null;
             return new LocalTime[]{day.getWorkStart(), day.getWorkEnd()};
         }
         EmployeeSchedule sch = scheduleRepo.findByEmployeeIdAndDayOfWeek(employeeId, date.getDayOfWeek()).orElse(null);
         // Руководитель не задал часы — мастер в этот день не принимает, слотов нет
         if (sch == null) return null;
         if (!sch.isWorking() || sch.getWorkStart() == null || sch.getWorkEnd() == null) return null;
+        if (!worksInBranch(employeeId, sch.getBranch(), branchId)) return null;
         return new LocalTime[]{sch.getWorkStart(), sch.getWorkEnd()};
+    }
+
+    /**
+     * Работает ли мастер в этот день в нужном филиале.
+     * branchId == null — филиал не важен. У дня филиал не указан — подходит любой филиал мастера
+     * (и любой вообще, если мастер ещё ни к одному не привязан — как было до филиалов).
+     */
+    private boolean worksInBranch(Long employeeId, com.salon.entity.Branch dayBranch, Long branchId) {
+        if (branchId == null) return true;
+        if (dayBranch != null) return dayBranch.getId().equals(branchId);
+        Employee e = employeeRepo.findById(employeeId).orElse(null);
+        if (e == null) return false;
+        return e.getBranches().isEmpty() || e.getBranches().stream().anyMatch(b -> b.getId().equals(branchId));
     }
 
     private boolean isBlocked(List<TimeBlock> blocks, LocalDate date, LocalDateTime start, LocalDateTime end) {
