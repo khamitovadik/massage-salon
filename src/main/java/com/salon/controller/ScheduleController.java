@@ -108,10 +108,10 @@ public class ScheduleController {
             @RequestParam(required = false) Long branchId,
             Authentication auth) {
         boolean employee = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_EMPLOYEE"));
-        java.util.Set<Long> scope = employee
-            ? (branchId == null ? null : java.util.Set.of(branchId))
-            : access.scope(auth.getName(), branchId);
-        return ResponseEntity.ok(scheduleService.getWorkDays(from, to, scope));
+        // Проверяем доступ к филиалу, но отдаём дни во всех филиалах: календарь должен показать,
+        // что мастер в этот день работает в другой точке, а не «часы по обычному графику»
+        if (!employee) access.scope(auth.getName(), branchId);
+        return ResponseEntity.ok(scheduleService.getWorkDays(from, to, null));
     }
 
     /**

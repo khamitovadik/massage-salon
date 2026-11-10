@@ -27,6 +27,17 @@ export interface User {
   createdAt: string
 }
 
+export interface Branch {
+  id: number
+  name: string
+  address: string | null
+  phone: string | null
+  mapUrl: string | null
+  workingHours: string | null
+  active: boolean
+  managers: { id: number; name: string; email: string }[]
+}
+
 export interface Employee {
   id: number
   userId: number
@@ -36,6 +47,8 @@ export interface Employee {
   specialization: string
   description: string
   active: boolean
+  branchIds: number[]
+  branchNames: string[]
 }
 
 export interface SalonService {
@@ -65,6 +78,9 @@ export interface Appointment {
   comment: string
   createdAt: string
   subscriptionId?: number | null
+  branchId?: number | null
+  branchName?: string | null
+  branchAddress?: string | null
 }
 
 export interface Subscription {
@@ -84,6 +100,8 @@ export interface Subscription {
   price: number | null
   notes: string
   createdAt: string
+  branchId?: number | null
+  branchName?: string | null
 }
 
 export interface HourSlot {
@@ -133,6 +151,7 @@ export interface CreateAppointmentRequest {
   comment?: string
   clientId?: number
   subscriptionId?: number
+  branchId?: number
 }
 
 export interface CreateSubscriptionRequest {

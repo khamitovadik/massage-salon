@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { cancelAppointment, getAllAppointments, getMasterAppointments, getMyAppointments, updateAppointmentStatus } from '../api/appointments'
 import { getAuth, isAdmin } from '../store/auth'
+import { usePublicBranches } from '../store/useBranches'
 import type { Appointment, AppointmentStatus } from '../types'
 import { formatDateTime, statusBadge, statusLabel } from '../utils/format'
 
@@ -13,6 +14,7 @@ export default function AppointmentsPage() {
   const showClient = admin || master
   // Мастер может записывать, но не отменять; клиент отменяет свои записи, админ — любые
   const canCancel = !master
+  const multiBranch = usePublicBranches().branches.length > 1
   const [list, setList] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -79,6 +81,7 @@ export default function AppointmentsPage() {
                     <td>
                       {formatDateTime(a.startTime)}<br />
                       <span className="text-muted text-sm">{a.durationMinutes} мин</span>
+                      {multiBranch && a.branchName && <><br /><span className="text-muted text-sm">{a.branchName}</span></>}
                     </td>
                     <td>{a.serviceName}</td>
                     <td>{a.employeeName}<br /><span className="text-muted text-sm">{a.employeeSpecialization}</span></td>

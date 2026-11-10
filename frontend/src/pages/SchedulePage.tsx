@@ -3,20 +3,24 @@ import toast from 'react-hot-toast'
 import { ChevronLeft, ChevronRight, Pencil } from 'lucide-react'
 import api from '../api/client'
 import { getAuth, isAdmin, isStaff } from '../store/auth'
+import { getCurrentBranchId } from '../store/branch'
+import { usePublicBranches } from '../store/useBranches'
 import type { Appointment, AppointmentStatus } from '../types'
 
-interface Employee { id: number; userId: number; name: string; specialization?: string }
+interface Employee { id: number; userId: number; name: string; specialization?: string; branchIds: number[] }
 interface DaySchedule {
   dayOfWeek: string
   working: boolean
   workStart: string
   workEnd: string
+  branchId?: number | null
 }
 /** Часы на конкретную дату — важнее недельного расписания */
 interface WorkDay {
   employeeId: number
   workDate: string
   working: boolean
+  branchId?: number | null
   workStart: string | null
   workEnd: string | null
 }
@@ -50,13 +54,17 @@ const hhmm = (min: number) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`
 // Варианты времени в редакторе: каждые 30 минут с 08:00 до 23:30 (LocalTime на бэкенде не принимает 24:00)
 const TIME_OPTIONS = Array.from({ length: 32 }, (_, i) => hhmm(8 * 60 + i * 30))
 
-interface Editor { empId: number; working: boolean; start: string; end: string; dates: string[]; weeks: number }
+interface Editor { empId: number; working: boolean; start: string; end: string; dates: string[]; weeks: number; branchId: number | null }
 const REPEAT_WEEKS = [1, 2, 4, 8, 12]
 
 export default function SchedulePage() {
   const { user } = getAuth()
   const admin = isAdmin(user?.role)
   const staff = isStaff(user?.role)
+  const { branches } = usePublicBranches()
+  const branchName = (id?: number | null) => branches.find(b => b.id === id)?.name
+  // Филиал, выбранный в шапке; у мастера фильтра нет — он видит все свои дни
+  const viewBranch = admin ? getCurrentBranchId() : null
 
   const [employees, setEmployees] = useState<Employee[]>([])
   const [schedules, setSchedules] = useState<Record<number, DaySchedule[]>>({})
@@ -80,6 +88,7 @@ export default function SchedulePage() {
         userId: e.userId,
         name: e.name ?? `Сотрудник ${e.id}`,
         specialization: e.specialization,
+        branchIds: e.branchIds ?? [],
       }))
       // Мастер видит только свою колонку
       if (staff && !admin) emps = emps.filter(e => e.userId === user?.id)
@@ -123,11 +132,29 @@ export default function SchedulePage() {
   const override = (empId: number, d: string) => workDays.find(w => w.employeeId === empId && w.workDate === d)
   // Подпись для дня без часов: «Выходной», если его так отметили, иначе «Не задано»
   const offLabel = (empId: number, d: Date = date) =>
-    override(empId, isoDate(d)) || (schedules[empId] ?? []).some(s => s.dayOfWeek === JS_DAYS[d.getDay()]) ? 'Выходной' : 'Часы не заданы'
+    elsewhere(empId, d) ? `В филиале «${branchName(dayBranch(empId, d)) ?? 'другом'}»`
+    : override(empId, isoDate(d)) || (schedules[empId] ?? []).some(s => s.dayOfWeek === JS_DAYS[d.getDay()]) ? 'Выходной' : 'Часы не заданы'
 
-  // Рабочие часы мастера на дату; null — не работает.
+  // Филиал, в котором мастер работает в этот день (null — в любом своём)
+  function dayBranch(empId: number, d: Date = date): number | null {
+    const o = override(empId, isoDate(d))
+    if (o) return o.branchId ?? null
+    return (schedules[empId] ?? []).find(s => s.dayOfWeek === JS_DAYS[d.getDay()])?.branchId ?? null
+  }
+
+  // В шапке выбран филиал, а мастер в этот день работает в другом
+  const elsewhere = (empId: number, d: Date = date) => {
+    const b = dayBranch(empId, d)
+    return viewBranch != null && b != null && b !== viewBranch && workHoursAny(empId, d) != null
+  }
+
+  // Рабочие часы мастера на дату; null — не работает (или работает в другом филиале).
   // Порядок как на бэкенде: график на дату → недельное расписание → иначе не работает
   function workHours(empId: number, d: Date = date): [number, number] | null {
+    return elsewhere(empId, d) ? null : workHoursAny(empId, d)
+  }
+
+  function workHoursAny(empId: number, d: Date = date): [number, number] | null {
     const o = override(empId, isoDate(d))
     if (o) return o.working && o.workStart && o.workEnd ? [minutesOf(o.workStart), minutesOf(o.workEnd)] : null
     const sch = (schedules[empId] ?? []).find(s => s.dayOfWeek === JS_DAYS[d.getDay()])
@@ -138,7 +165,15 @@ export default function SchedulePage() {
 
   function openEditor(empId: number) {
     const h = workHours(empId)
+    const emp = employees.find(e => e.id === empId)
+    const empBranches = emp?.branchIds ?? []
+    // Филиал дня: уже назначенный → выбранный в шапке → единственный филиал мастера
+    const current = dayBranch(empId)
+    const initialBranch = current && !elsewhere(empId) ? current
+      : viewBranch && empBranches.includes(viewBranch) ? viewBranch
+      : empBranches.length === 1 ? empBranches[0] : null
     setEditor({
+      branchId: initialBranch,
       // Часы ещё не заданы — открываем сразу с «Работает», руководитель обычно за этим и пришёл
       empId, working: !!h || offLabel(empId) !== 'Выходной',
       start: hhmm(h ? h[0] : DAY_START * 60), end: hhmm(h ? h[1] : DAY_END * 60),
@@ -163,7 +198,9 @@ export default function SchedulePage() {
         const url = `/schedule/employee/${editor.empId}/day/${d}`
         return reset
           ? api.delete(url)
-          : api.put(url, editor.working ? { working: true, workStart: editor.start, workEnd: editor.end } : { working: false })
+          : api.put(url, editor.working
+            ? { working: true, workStart: editor.start, workEnd: editor.end, branchId: editor.branchId ?? undefined }
+            : { working: false })
       }))
       toast.success(reset ? 'Вернули обычный график' : 'График сохранён')
       setEditor(null)
@@ -277,6 +314,18 @@ export default function SchedulePage() {
               </span>
             ) : (
               <span style={{ color: 'var(--text-muted)' }}>Выходной — записаться к мастеру будет нельзя</span>
+            )}
+            {editor.working && (employees.find(e => e.id === editor.empId)?.branchIds.length ?? 0) > 1 && (
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                в филиале
+                <select className="input" style={{ width: 'auto' }} value={editor.branchId ?? ''}
+                  onChange={e => setEditor({ ...editor, branchId: e.target.value ? Number(e.target.value) : null })}>
+                  <option value="">любом своём</option>
+                  {employees.find(e => e.id === editor.empId)!.branchIds.map(id => (
+                    <option key={id} value={id}>{branchName(id) ?? `#${id}`}</option>
+                  ))}
+                </select>
+              </span>
             )}
             <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               повторять

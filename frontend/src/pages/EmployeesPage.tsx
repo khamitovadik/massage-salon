@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import { getEmployees, createEmployee, deactivateEmployee } from '../api/employees'
+import { getAllEmployees, createEmployee, deactivateEmployee } from '../api/employees'
+import { setEmployeeBranches } from '../api/branches'
+import BranchChecks from '../components/BranchChecks'
+import { getCurrentBranchId } from '../store/branch'
+import { useManagedBranches } from '../store/useBranches'
 import type { Employee } from '../types'
 
 export default function EmployeesPage() {
@@ -11,10 +15,33 @@ export default function EmployeesPage() {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', password: '', specialization: '', description: ''
   })
+  const branches = useManagedBranches()
+  const multi = branches.length > 1
+  const [newBranches, setNewBranches] = useState<number[]>([])
+  const [editing, setEditing] = useState<number | null>(null)
+  const [editBranches, setEditBranches] = useState<number[]>([])
 
   useEffect(() => {
-    getEmployees().then(setList).finally(() => setLoading(false))
+    getAllEmployees().then(setList).finally(() => setLoading(false))
   }, [])
+
+  // Нового мастера по умолчанию добавляем в филиал, выбранный в шапке
+  useEffect(() => {
+    const cur = getCurrentBranchId()
+    setNewBranches(cur ? [cur] : branches.length === 1 ? [branches[0].id] : [])
+  }, [branches])
+
+  async function saveBranches(em: Employee) {
+    try {
+      const ids = await setEmployeeBranches(em.id, editBranches)
+      const names = ids.map(id => branches.find(b => b.id === id)?.name ?? `#${id}`)
+      setList(l => l.map(x => x.id === em.id ? { ...x, branchIds: ids, branchNames: names } : x))
+      setEditing(null)
+      toast.success('Филиалы сохранены')
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Ошибка')
+    }
+  }
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
@@ -30,6 +57,7 @@ export default function EmployeesPage() {
         password: form.password,
         specialization: form.specialization,
         description: form.description || undefined,
+        branchIds: newBranches.length ? newBranches : undefined,
       })
       // Существующий (в т.ч. деактивированный) аккаунт возвращается с тем же id — заменяем, а не дублируем
       setList(l => l.some(x => x.id === emp.id) ? l.map(x => x.id === emp.id ? emp : x) : [...l, emp])
@@ -96,6 +124,12 @@ export default function EmployeesPage() {
                 <input className="input" value={form.description} onChange={set('description')} />
               </div>
             </div>
+            {multi && (
+              <div className="field">
+                <label className="label">Где работает</label>
+                <BranchChecks branches={branches.filter(b => b.active)} value={newBranches} onChange={setNewBranches} />
+              </div>
+            )}
             <button className="btn btn-primary" type="submit" disabled={saving}>
               {saving ? 'Сохранение...' : 'Сохранить'}
             </button>
@@ -115,6 +149,7 @@ export default function EmployeesPage() {
                   <th>Email</th>
                   <th>Телефон</th>
                   <th>Специализация</th>
+                  {multi && <th>Филиалы</th>}
                   <th>Статус</th>
                   <th></th>
                 </tr>
@@ -126,6 +161,26 @@ export default function EmployeesPage() {
                     <td>{em.email}</td>
                     <td>{em.phone}</td>
                     <td>{em.specialization}</td>
+                    {multi && (
+                      <td style={{ minWidth: 200 }}>
+                        {editing === em.id ? (
+                          <div>
+                            <BranchChecks branches={branches} value={editBranches} onChange={setEditBranches} />
+                            <div className="flex gap-2 mt-2">
+                              <button className="btn btn-sm btn-primary" onClick={() => saveBranches(em)}>Сохранить</button>
+                              <button className="btn btn-sm btn-ghost" onClick={() => setEditing(null)}>Отмена</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button className="branch-tags" title="Изменить филиалы"
+                            onClick={() => { setEditing(em.id); setEditBranches(em.branchIds ?? []) }}>
+                            {(em.branchNames ?? []).length
+                              ? em.branchNames.map(n => <span key={n} className="badge badge-gray">{n}</span>)
+                              : <span className="badge badge-yellow">Без филиала</span>}
+                          </button>
+                        )}
+                      </td>
+                    )}
                     <td>
                       <span className={`badge ${em.active ? 'badge-green' : 'badge-gray'}`}>
                         {em.active ? 'Активен' : 'Неактивен'}

@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
-  Bell, CalendarClock, CalendarDays, ChartLine, ChevronDown, ChevronRight, ChevronsUpDown,
+  Bell, Building2, CalendarClock, CalendarDays, ChartLine, ChevronDown, ChevronRight, ChevronsUpDown,
   CircleHelp, ContactRound, Home, LayoutGrid, LogOut, Menu, Plus, Send, SlidersHorizontal, Sparkles, Star,
   Ticket, Users, X, type LucideIcon,
 } from 'lucide-react'
 import { clearAuth, getAuth, isAdmin } from '../store/auth'
+import { getCurrentBranchId, setCurrentBranchId } from '../store/branch'
+import { useManagedBranches } from '../store/useBranches'
 import type { Role } from '../types'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
@@ -20,6 +22,7 @@ const NAV: NavItem[] = [
   { to: '/services', label: 'Услуги', icon: Sparkles },
   { to: '/schedule', label: 'Расписание', icon: CalendarClock },
   { to: '/reviews', label: 'Отзывы', icon: Star },
+  { to: '/branches', label: 'Филиалы', icon: Building2, adminOnly: true },
   { to: '/employees', label: 'Сотрудники', icon: Users, adminOnly: true },
   { to: '/users', label: 'Пользователи', icon: ContactRound, adminOnly: true },
   { to: '/analytics', label: 'Аналитика', icon: ChartLine, adminOnly: true },
@@ -29,7 +32,7 @@ const NAV: NavItem[] = [
 
 const ROLE_LABEL: Record<Role, string> = {
   OWNER: 'Владелец салона',
-  ADMIN: 'Администратор',
+  ADMIN: 'Руководитель филиала',
   EMPLOYEE: 'Сотрудник',
   CLIENT: 'Клиент',
 }
@@ -62,7 +65,33 @@ export default function Layout() {
     navigate('/login')
   }
 
-  const navItems = NAV.filter(n => !n.adminOnly || isAdmin(user?.role))
+  const admin = isAdmin(user?.role)
+  const branches = useManagedBranches(admin)
+  const branchId = getCurrentBranchId()
+
+  // Выбранный филиал закрыли или руководителя от него открепили — сбрасываем на «все»
+  useEffect(() => {
+    if (branchId && branches.length && !branches.some(b => b.id === branchId)) {
+      setCurrentBranchId(null)
+      window.location.reload()
+    }
+  }, [branches, branchId])
+
+  function switchBranch(value: string) {
+    setCurrentBranchId(value ? Number(value) : null)
+    // Все разделы берут филиал из запросов — проще всего перезагрузить текущую страницу
+    window.location.reload()
+  }
+
+  const branchSwitch = admin && branches.length > 1 && (
+    <select className="branch-switch" value={branchId ?? ''} onChange={e => switchBranch(e.target.value)}
+      aria-label="Филиал" title="Показывать данные филиала">
+      <option value="">{user?.role === 'OWNER' ? 'Все филиалы' : 'Все мои филиалы'}</option>
+      {branches.map(b => <option key={b.id} value={b.id}>{b.name}{b.active ? '' : ' (закрыт)'}</option>)}
+    </select>
+  )
+
+  const navItems = NAV.filter(n => !n.adminOnly || admin)
   const current = [...NAV].sort((a, b) => b.to.length - a.to.length)
     .find(n => n.exact ? pathname === n.to : pathname.startsWith(n.to))
   const roleLabel = user?.role ? ROLE_LABEL[user.role] : ''
@@ -138,6 +167,7 @@ export default function Layout() {
             <span className="breadcrumbs-current">{current?.label ?? 'Главная'}</span>
           </div>
           <div className="topbar-right">
+            {branchSwitch}
             <ThemeToggle />
             <button className="icon-btn" aria-label="Уведомления"><Bell size={18} strokeWidth={1.75} /></button>
             <span className="topbar-divider" />

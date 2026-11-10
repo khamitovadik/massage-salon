@@ -16,6 +16,7 @@ import SettingsPage from './pages/SettingsPage'
 import ReviewsPage from './pages/ReviewsPage'
 import BroadcastPage from './pages/BroadcastPage'
 import UsersPage from './pages/UsersPage'
+import BranchesPage from './pages/BranchesPage'
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { token } = getAuth()
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="reviews" element={<ReviewsPage />} />
         <Route path="broadcast" element={<BroadcastPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="branches" element={<BranchesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

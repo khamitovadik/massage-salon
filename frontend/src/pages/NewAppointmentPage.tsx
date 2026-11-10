@@ -8,7 +8,9 @@ import { getHourlySlots } from '../api/schedule'
 import { getServices } from '../api/services'
 import { getClientSubscriptions, getMyActiveSubscriptions } from '../api/subscriptions'
 import { getClients } from '../api/users'
-import { getAuth, isStaff } from '../store/auth'
+import { getAuth, isAdmin, isStaff } from '../store/auth'
+import { getCurrentBranchId } from '../store/branch'
+import { usePublicBranches } from '../store/useBranches'
 import type { ClientShort, Employee, HourSlot, SalonService, Subscription } from '../types'
 
 // Руководитель составляет график на недели вперёд — даём записаться на 4 недели
@@ -42,29 +44,49 @@ export default function NewAppointmentPage() {
   const [time, setTime] = useState('')
   const [comment, setComment] = useState('')
 
+  const { branches, loaded: branchesLoaded } = usePublicBranches()
+  const [branchId, setBranchId] = useState<number | null>(null)
+  const multiBranch = branches.length > 1
+  const branch = branches.find(b => b.id === branchId)
+
+  // Филиал по умолчанию: единственный; у руководителя — выбранный в шапке
   useEffect(() => {
-    Promise.all([getEmployees(), getServices(), staff ? getClients() : Promise.resolve([])])
-      .then(([e, s, c]) => {
-        setEmployees(e)
-        setServices(s)
-        setClients(c)
-        // Мастер по умолчанию записывает к себе
-        const me = e.find(em => em.userId === user?.id)
-        if (user?.role === 'EMPLOYEE' && me) setEmployeeId(String(me.id))
-      })
+    if (!branchesLoaded) return
+    if (branches.length === 1) setBranchId(branches[0].id)
+    else if (isAdmin(user?.role)) {
+      const cur = getCurrentBranchId()
+      if (cur && branches.some(b => b.id === cur)) setBranchId(cur)
+    }
+  }, [branchesLoaded])
+
+  useEffect(() => {
+    Promise.all([getServices(), staff ? getClients() : Promise.resolve([])])
+      .then(([s, c]) => { setServices(s); setClients(c) })
       .finally(() => setLoading(false))
   }, [])
+
+  // Мастера выбранного филиала
+  useEffect(() => {
+    if (!branchesLoaded || (multiBranch && !branchId)) { setEmployees([]); return }
+    getEmployees(branchId).then(e => {
+      setEmployees(e)
+      // Мастер по умолчанию записывает к себе; мастера из другого филиала сбрасываем
+      const me = e.find(em => em.userId === user?.id)
+      if (user?.role === 'EMPLOYEE' && me) setEmployeeId(String(me.id))
+      else setEmployeeId(id => e.some(em => String(em.id) === id) ? id : '')
+    }).catch(() => setEmployees([]))
+  }, [branchId, branchesLoaded])
 
   function loadSlots() {
     if (!employeeId) { setSlots([]); return }
     setSlotsLoading(true)
-    getHourlySlots(Number(employeeId), date)
+    getHourlySlots(Number(employeeId), date, branchId)
       .then(setSlots)
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false))
   }
 
-  useEffect(() => { setTime(''); loadSlots() }, [employeeId, date])
+  useEffect(() => { setTime(''); loadSlots() }, [employeeId, date, branchId])
 
   // Абонементы клиента, подходящие под выбранную услугу
   useEffect(() => {
@@ -90,6 +112,7 @@ export default function NewAppointmentPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (multiBranch && !branchId) return toast.error('Выберите филиал')
     if (staff && !clientId) return toast.error('Выберите клиента')
     if (!serviceId || !employeeId) return toast.error('Выберите услугу и мастера')
     if (!time) return toast.error('Выберите свободное окошко')
@@ -103,6 +126,7 @@ export default function NewAppointmentPage() {
         comment: comment || undefined,
         clientId: staff ? Number(clientId) : undefined,
         subscriptionId: subscriptionId ? Number(subscriptionId) : undefined,
+        branchId: branchId ?? undefined,
       })
       toast.success('Запись создана!')
       navigate('/appointments')
@@ -121,11 +145,29 @@ export default function NewAppointmentPage() {
       <div className="page-header">
         <div>
           <h1 className="page-title">Записаться</h1>
-          <p className="page-subtitle">Выберите услугу, мастера и свободное окошко — каждое длится 1 час.</p>
+          <p className="page-subtitle">
+            {multiBranch ? 'Выберите филиал, услугу, мастера' : 'Выберите услугу, мастера'} и свободное окошко — каждое длится 1 час.
+          </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="card">
+        {multiBranch && (
+          <div className="field">
+            <label className="label">Филиал</label>
+            <div className="branch-pick">
+              {branches.map(b => (
+                <button type="button" key={b.id} className={b.id === branchId ? 'is-active' : ''}
+                  onClick={() => { setBranchId(b.id); setTime('') }}>
+                  <strong>{b.name}</strong>
+                  {b.address && <small>{b.address}</small>}
+                  {b.workingHours && <small>{b.workingHours}</small>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {staff && (
           <div className="field">
             <label className="label">Клиент</label>
@@ -149,7 +191,7 @@ export default function NewAppointmentPage() {
           <div className="field">
             <label className="label">Мастер</label>
             <select className="input" value={employeeId} onChange={e => setEmployeeId(e.target.value)} required>
-              <option value="">— Выберите мастера —</option>
+              <option value="">{multiBranch && !branchId ? '— Сначала выберите филиал —' : '— Выберите мастера —'}</option>
               {employees.map(em => <option key={em.id} value={em.id}>{em.name} — {em.specialization}</option>)}
             </select>
           </div>
@@ -188,7 +230,9 @@ export default function NewAppointmentPage() {
           ) : slotsLoading ? (
             <div className="spinner" />
           ) : slots.length === 0 ? (
-            <div className="slot-empty">В этот день мастер не работает — выберите другую дату</div>
+            <div className="slot-empty">
+              {multiBranch ? 'В этот день мастер не принимает в этом филиале — выберите другую дату' : 'В этот день мастер не работает — выберите другую дату'}
+            </div>
           ) : (
             <div className="slot-grid">
               {slots.map((s, i) => {
@@ -240,6 +284,7 @@ export default function NewAppointmentPage() {
         {time && service && (
           <div className="booking-summary">
             {dayjs(`${date}T${time}`).format('D MMMM, dd')} · {time} · {service.name} · {service.durationMinutes} мин
+            {multiBranch && branch ? ` · ${branch.name}${branch.address ? `, ${branch.address}` : ''}` : ''}
           </div>
         )}
 

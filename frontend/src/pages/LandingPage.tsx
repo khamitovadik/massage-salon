@@ -7,7 +7,7 @@ import api from '../api/client'
 import Logo from '../components/Logo'
 import ThemeToggle from '../components/ThemeToggle'
 import { getAuth } from '../store/auth'
-import type { SalonService } from '../types'
+import type { Branch, SalonService } from '../types'
 
 interface PublicSettings {
   name?: string
@@ -64,6 +64,7 @@ function WhatsAppIcon({ size = 20 }: { size?: number }) {
 export default function LandingPage() {
   const [settings, setSettings] = useState<PublicSettings>({})
   const [services, setServices] = useState<SalonService[]>([])
+  const [branches, setBranches] = useState<Branch[]>([])
   const [showDock, setShowDock] = useState(false)
   const heroCtaRef = useRef<HTMLDivElement>(null)
   const { token } = getAuth()
@@ -80,6 +81,7 @@ export default function LandingPage() {
   useEffect(() => {
     fetchPublic<PublicSettings>('/settings').then(s => s && setSettings(s))
     fetchPublic<SalonService[]>('/services').then(s => s && setServices(s))
+    fetchPublic<Branch[]>('/branches').then(b => b && setBranches(b))
   }, [])
 
   // wa.me требует международный формат: 8 777… → 7 777…
@@ -249,10 +251,24 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="l-contacts">
+              {branches.length > 1 ? branches.map(b => (
+                // Несколько точек — у каждой свой адрес, часы и телефон
+                <div className="l-contact" key={b.id}><MapPin size={20} /><div>
+                  <small>{b.name}</small>
+                  {b.mapUrl ? <a href={b.mapUrl} target="_blank" rel="noopener noreferrer">{b.address || 'На карте'}</a> : b.address}
+                  {(b.workingHours || b.phone) && (
+                    <div style={{ fontSize: 13, opacity: .8 }}>
+                      {b.workingHours}{b.workingHours && b.phone ? ' · ' : ''}
+                      {b.phone && <a href={`tel:+${b.phone.replace(/\D/g, '').replace(/^8(\d{10})$/, '7$1')}`}>{b.phone}</a>}
+                    </div>
+                  )}
+                </div></div>
+              )) : <>
               {settings.address && (
                 <div className="l-contact"><MapPin size={20} /><div><small>Адрес</small>{settings.address}</div></div>
               )}
               <div className="l-contact"><Clock size={20} /><div><small>Часы работы</small>{hours}</div></div>
+              </>}
               {settings.phone && (
                 <a className="l-contact" href={`tel:+${phoneDigits}`}>
                   <Phone size={20} /><div><small>Телефон</small>{settings.phone}</div>
