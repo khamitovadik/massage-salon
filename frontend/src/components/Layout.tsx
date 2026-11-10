@@ -13,7 +13,7 @@ import type { Role } from '../types'
 import Logo from './Logo'
 import ThemeToggle from './ThemeToggle'
 
-interface NavItem { to: string; label: string; icon: LucideIcon; exact?: boolean; adminOnly?: boolean }
+interface NavItem { to: string; label: string; icon: LucideIcon; exact?: boolean; adminOnly?: boolean; ownerOnly?: boolean }
 
 const NAV: NavItem[] = [
   { to: '/', label: 'Главная', icon: Home, exact: true },
@@ -24,10 +24,10 @@ const NAV: NavItem[] = [
   { to: '/reviews', label: 'Отзывы', icon: Star },
   { to: '/branches', label: 'Филиалы', icon: Building2, adminOnly: true },
   { to: '/employees', label: 'Сотрудники', icon: Users, adminOnly: true },
-  { to: '/users', label: 'Пользователи', icon: ContactRound, adminOnly: true },
+  { to: '/users', label: 'Пользователи', icon: ContactRound, ownerOnly: true },
   { to: '/analytics', label: 'Аналитика', icon: ChartLine, adminOnly: true },
   { to: '/broadcast', label: 'Рассылка', icon: Send, adminOnly: true },
-  { to: '/settings', label: 'Настройки', icon: SlidersHorizontal, adminOnly: true },
+  { to: '/settings', label: 'Настройки', icon: SlidersHorizontal, ownerOnly: true },
 ]
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -91,7 +91,7 @@ export default function Layout() {
     </select>
   )
 
-  const navItems = NAV.filter(n => !n.adminOnly || admin)
+  const navItems = NAV.filter(n => (!n.adminOnly || admin) && (!n.ownerOnly || user?.role === 'OWNER'))
   const current = [...NAV].sort((a, b) => b.to.length - a.to.length)
     .find(n => n.exact ? pathname === n.to : pathname.startsWith(n.to))
   const roleLabel = user?.role ? ROLE_LABEL[user.role] : ''

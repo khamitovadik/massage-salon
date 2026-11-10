@@ -38,6 +38,10 @@ public class AppointmentService {
     private final BranchAccessService access;
     private final com.salon.repository.BranchRepository branchRepository;
 
+    /** Клиент записывается онлайн только с номером, подтверждённым в Telegram (REQUIRE_VERIFIED_PHONE) */
+    @org.springframework.beans.factory.annotation.Value("${app.auth.require-verified-phone:false}")
+    private boolean requireVerifiedPhone;
+
     /**
      * Создать запись.
      * currentUserEmail — email авторизованного пользователя (из JWT).
@@ -52,6 +56,9 @@ public class AppointmentService {
         // Определяем клиента
         User client;
         if (currentUser.getRole() == Role.CLIENT) {
+            if (requireVerifiedPhone && !currentUser.isPhoneVerified()) {
+                throw new RuntimeException("Подтвердите номер телефона через Telegram — кнопка на главной странице");
+            }
             client = currentUser;
         } else if (req.getClientId() != null) {
             client = userRepository.findById(req.getClientId())

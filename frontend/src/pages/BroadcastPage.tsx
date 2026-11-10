@@ -42,7 +42,7 @@ export default function BroadcastPage() {
         </div>
 
         <div style={{ marginTop: 16, padding: 12, background: 'var(--brand-light)', borderRadius: 8, fontSize: 13, color: 'var(--text-muted)' }}>
-          💡 Получат сообщение только те клиенты, которые привязали Telegram командой <code>/start email</code> в боте <strong>@MassageSalonAldikBot</strong>
+          💡 Получат сообщение только клиенты, подключившие Telegram: кнопка «Подключить Telegram» на главной странице их личного кабинета
         </div>
       </div>
     </div>

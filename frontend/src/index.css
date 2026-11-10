@@ -838,3 +838,10 @@ a.l-contact:hover { background: rgba(255, 255, 255, .14); }
 @media (max-width: 640px) {
   .branch-switch { max-width: 140px; }
 }
+
+/* ===== Подключение Telegram ===== */
+.tg-connect { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; border-color: var(--brand-soft); }
+.tg-connect-icon {
+  width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--brand-light); color: var(--brand-dark); flex-shrink: 0;
+}

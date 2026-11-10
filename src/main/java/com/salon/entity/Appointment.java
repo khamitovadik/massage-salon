@@ -38,6 +38,10 @@ public class Appointment {
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
 
+    /** Напоминание клиенту уже отправлено — чтобы после перезапуска сервера не слать повторно */
+    @Column(name = "reminder_sent")
+    private Boolean reminderSent;
+
     /** Филиал, в котором проходит сеанс */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id")

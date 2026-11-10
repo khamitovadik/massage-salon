@@ -20,6 +20,11 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.FORBIDDEN, "Недостаточно прав");
     }
 
+    @ExceptionHandler(com.salon.service.LoginAttemptService.TooManyAttempts.class)
+    public ResponseEntity<Map<String, Object>> handleTooMany(RuntimeException ex) {
+        return buildError(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage());
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex) {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());

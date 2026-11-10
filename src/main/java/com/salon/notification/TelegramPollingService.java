@@ -1,7 +1,5 @@
 package com.salon.notification;
 
-import com.salon.entity.User;
-import com.salon.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,13 +9,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Простой polling-сервис для Telegram.
  * Каждые 5 секунд проверяет новые сообщения.
- * Команда /start <email> — привязывает Telegram к аккаунту.
- * Команда /start — просто отвечает инструкцией.
+ * /start <код> — привязка по одноразовой ссылке с сайта, контакт — подтверждение номера.
  */
 @Service
 @Slf4j
@@ -27,8 +23,8 @@ public class TelegramPollingService {
     @Value("${app.telegram.bot-token:}")
     private String botToken;
 
-    private final UserRepository userRepository;
     private final TelegramNotificationService telegramService;
+    private final com.salon.service.TelegramLinkService linkService;
     private final RestTemplate restTemplate = new RestTemplate();
 
     private long lastUpdateId = 0;
@@ -65,55 +61,42 @@ public class TelegramPollingService {
         if (message == null) return;
 
         Map<String, Object> chat = (Map<String, Object>) message.get("chat");
-        String chatId = String.valueOf(((Number) chat.get("id")).longValue());
-        String text = (String) message.get("text");
+        long chatId = ((Number) chat.get("id")).longValue();
+        Map<String, Object> from = (Map<String, Object>) message.get("from");
+        Long fromId = from != null ? ((Number) from.get("id")).longValue() : null;
 
+        // Пользователь нажал «Поделиться номером»
+        Map<String, Object> contact = (Map<String, Object>) message.get("contact");
+        if (contact != null) {
+            Long contactUserId = contact.get("user_id") != null ? ((Number) contact.get("user_id")).longValue() : null;
+            linkService.onContact(chatId, fromId, contactUserId, (String) contact.get("phone_number"));
+            return;
+        }
+
+        String text = (String) message.get("text");
         if (text == null) return;
         text = text.trim();
 
         if (text.startsWith("/start")) {
             String[] parts = text.split("\\s+", 2);
-            if (parts.length == 2) {
-                // /start email@example.com
-                String email = parts[1].trim();
-                linkAccount(chatId, email);
+            if (parts.length == 2 && !parts[1].contains("@")) {
+                linkService.onStart(chatId, parts[1].trim());
             } else {
-                // /start — без email
-                telegramService.sendToChat(chatId,
-                    "👋 Привет! Это бот *Massage Salon Aldik*.\n\n" +
-                    "Чтобы привязать свой аккаунт и получать уведомления, напиши:\n" +
-                    "`/start ваш@email.com`\n\n" +
-                    "Например: `/start client@mail.ru`");
+                // Привязка по email отключена: по чужому email можно было получать чужие уведомления
+                telegramService.sendToChat(String.valueOf(chatId),
+                    "👋 Привет! Это бот салона *Em.Del.Relaxx*.\n\n" +
+                    "Чтобы получать уведомления и напоминания, войдите на сайт и нажмите " +
+                    "«Подключить Telegram» — откроется этот бот, и аккаунт привяжется сам.");
             }
         } else if (text.startsWith("/id")) {
-            // Нужен, чтобы добавить чат в app.telegram.owner-chat-id
-            telegramService.sendToChat(chatId, "Ваш chat ID: `" + chatId + "`");
+            // Нужен, чтобы добавить чат в TELEGRAM_OWNER_CHAT_IDS
+            telegramService.sendToChat(String.valueOf(chatId), "Ваш chat ID: `" + chatId + "`");
         } else if (text.startsWith("/help")) {
-            telegramService.sendToChat(chatId,
+            telegramService.sendToChat(String.valueOf(chatId),
                 "📋 *Команды бота:*\n\n" +
-                "/start email — привязать Telegram к аккаунту\n" +
+                "Подключение — кнопка «Подключить Telegram» на сайте\n" +
                 "/id — показать ваш chat ID\n" +
                 "/help — список команд");
         }
-    }
-
-    private void linkAccount(String chatId, String email) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            telegramService.sendToChat(chatId,
-                "❌ Пользователь с email `" + email + "` не найден.\n" +
-                "Проверьте email и попробуйте снова.");
-            return;
-        }
-
-        User user = userOpt.get();
-        user.setTelegramChatId(Long.parseLong(chatId));
-        userRepository.save(user);
-
-        telegramService.sendToChat(chatId,
-            "✅ Telegram успешно привязан к аккаунту *" + user.getName() + "*!\n\n" +
-            "Теперь вы будете получать уведомления о записях и напоминания.");
-
-        log.info("Telegram chatId {} привязан к пользователю {}", chatId, email);
     }
 }

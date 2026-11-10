@@ -69,10 +69,10 @@ public class TelegramNotificationService {
     }
 
     /** Напоминание клиенту о записи за 2 часа */
-    public void sendReminder(Appointment a) {
+    public boolean sendReminder(Appointment a) {
         String msg = String.format(
             "⏰ *Напоминание!*\n" +
-            "Через 2 часа у вас запись: *%s*\n" +
+            "Скоро у вас запись: *%s*\n" +
             "Мастер: %s\n" +
             "Время: %s%s",
             a.getService().getName(),
@@ -83,10 +83,10 @@ public class TelegramNotificationService {
 
         Long chatId = a.getClient().getTelegramChatId();
         if (chatId != null) {
-            sendMessage(chatId.toString(), msg);
-        } else {
-            log.info("[Reminder→{}] (chatId не задан): {}", a.getClient().getName(), msg);
+            return sendMessage(chatId.toString(), msg);
         }
+        log.info("[Reminder→{}] (chatId не задан): {}", a.getClient().getName(), msg);
+        return false;
     }
 
     /** Адрес филиала в напоминании — при нескольких точках клиент должен знать, куда ехать */
@@ -94,6 +94,29 @@ public class TelegramNotificationService {
         if (b == null) return "";
         String addr = b.getAddress() != null ? b.getAddress() : b.getName();
         return "\nАдрес: " + addr;
+    }
+
+    /** Имя бота (без @) — для ссылок t.me/…; берётся из Telegram один раз */
+    private volatile String botUsername;
+
+    @SuppressWarnings("unchecked")
+    public String getBotUsername() {
+        if (botUsername != null) return botUsername;
+        if (botToken == null || botToken.isBlank()) return null;
+        try {
+            Map<String, Object> r = restTemplate.getForObject("https://api.telegram.org/bot" + botToken + "/getMe", Map.class);
+            if (r != null && Boolean.TRUE.equals(r.get("ok"))) {
+                botUsername = (String) ((Map<String, Object>) r.get("result")).get("username");
+            }
+        } catch (Exception e) {
+            log.warn("[Telegram] getMe не удался: {}", e.getMessage());
+        }
+        return botUsername;
+    }
+
+    /** Сообщение с клавиатурой (например, кнопкой «Поделиться номером») */
+    public boolean sendWithKeyboard(String chatId, String text, Map<String, Object> replyMarkup) {
+        return send(chatId, text, replyMarkup);
     }
 
     /** Рассылка произвольного сообщения на конкретный chat ID */
@@ -110,6 +133,10 @@ public class TelegramNotificationService {
     }
 
     private boolean sendMessage(String chatId, String text) {
+        return send(chatId, text, null);
+    }
+
+    private boolean send(String chatId, String text, Map<String, Object> replyMarkup) {
         if (botToken == null || botToken.isBlank()) {
             log.debug("[Telegram] токен не задан. chatId={}: {}", chatId, text);
             return false;
@@ -120,6 +147,7 @@ public class TelegramNotificationService {
             body.put("chat_id", chatId);
             body.put("text", text);
             body.put("parse_mode", "Markdown");
+            if (replyMarkup != null) body.put("reply_markup", replyMarkup);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             restTemplate.postForObject(url, new HttpEntity<>(body, headers), String.class);

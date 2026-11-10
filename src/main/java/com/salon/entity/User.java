@@ -42,6 +42,21 @@ public class User implements UserDetails {
     @Column(name = "telegram_chat_id")
     private Long telegramChatId;
 
+    /** Номер подтверждён через Telegram (клиент поделился своим контактом в боте) */
+    @Column(name = "phone_verified")
+    private Boolean phoneVerified;
+
+    /** Одноразовый код для ссылки t.me/бот?start=код — так Telegram привязывается без ввода email */
+    @Column(name = "telegram_link_token", unique = true)
+    private String telegramLinkToken;
+
+    @Column(name = "telegram_link_expires_at")
+    private LocalDateTime telegramLinkExpiresAt;
+
+    public boolean isPhoneVerified() {
+        return Boolean.TRUE.equals(phoneVerified);
+    }
+
     @Column(name = "is_active")
     @Builder.Default
     private boolean active = true;

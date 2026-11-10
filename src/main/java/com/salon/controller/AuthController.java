@@ -22,7 +22,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request,
+                                              jakarta.servlet.http.HttpServletRequest http) {
+        String ip = http.getHeader("X-Forwarded-For") != null
+            ? http.getHeader("X-Forwarded-For").split(",")[0].trim() : http.getRemoteAddr();
+        return ResponseEntity.ok(authService.login(request, ip));
     }
 }

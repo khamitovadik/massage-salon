@@ -10,4 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByPhone(String phone);
     boolean existsByEmail(String email);
     boolean existsByPhone(String phone);
+    Optional<User> findByTelegramLinkToken(String token);
+    java.util.List<User> findAllByTelegramChatId(Long chatId);
 }

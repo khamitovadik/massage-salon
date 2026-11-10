@@ -21,6 +21,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final LoginAttemptService loginAttempts;
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -42,10 +43,18 @@ public class AuthService {
         return buildResponse(user, jwtUtil.generateToken(user));
     }
 
-    public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+    public AuthResponse login(LoginRequest request, String ip) {
+        String email = request.getEmail() == null ? "" : request.getEmail().trim().toLowerCase();
+        loginAttempts.check(email, ip);
+        try {
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            loginAttempts.failed(email, ip);
+            throw new RuntimeException("Неверный email или пароль");
+        }
+        loginAttempts.succeeded(email);
 
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new RuntimeException("Пользователь не найден"));

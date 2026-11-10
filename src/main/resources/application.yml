@@ -36,6 +36,10 @@ app:
     # Если пусто и аккаунта ещё нет — пароль генерируется и один раз пишется в лог
     password: ${OWNER_PASSWORD:}
 
+  auth:
+    # true — клиент записывается онлайн только с номером, подтверждённым в Telegram
+    require-verified-phone: ${REQUIRE_VERIFIED_PHONE:false}
+
   telegram:
     bot-token: ${TELEGRAM_BOT_TOKEN:}
     owner-chat-id: ${TELEGRAM_OWNER_CHAT_IDS:}   # chat ID руководителей через запятую

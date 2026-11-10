@@ -22,20 +22,28 @@ public class ReminderScheduler {
     private final AppointmentRepository appointmentRepository;
     private final TelegramNotificationService telegram;
 
-    @Scheduled(fixedRate = 3_600_000) // каждый час
+    /**
+     * Каждые 10 минут: всем, у кого сеанс в ближайшие 2 часа и напоминания ещё не было.
+     * Отметка reminder_sent хранится в базе — после перезапуска или «сна» сервера
+     * напоминание не уйдёт второй раз и не потеряется (если сервер проснулся до начала сеанса).
+     */
+    @Scheduled(fixedDelay = 600_000, initialDelay = 60_000)
+    @org.springframework.transaction.annotation.Transactional
     public void sendReminders() {
-        LocalDateTime from = LocalDateTime.now().plusHours(2).withSecond(0).withNano(0);
-        LocalDateTime to = from.plusMinutes(60);
-
-        List<Appointment> upcoming = appointmentRepository.findUpcoming(from, to);
-        log.debug("[Reminder] проверяем {} - {}: найдено {} записей", from, to, upcoming.size());
+        LocalDateTime now = LocalDateTime.now();
+        List<Appointment> upcoming = appointmentRepository.findUpcoming(now, now.plusHours(2));
 
         for (Appointment a : upcoming) {
+            if (Boolean.TRUE.equals(a.getReminderSent())) continue;
+            // Записался меньше чем за 2 часа — время и так перед глазами, не дёргаем
+            boolean justBooked = a.getCreatedAt() != null && a.getCreatedAt().isAfter(a.getStartTime().minusHours(2));
             try {
-                telegram.sendReminder(a);
+                if (!justBooked) telegram.sendReminder(a);
             } catch (Exception e) {
                 log.warn("[Reminder] ошибка для записи {}: {}", a.getId(), e.getMessage());
             }
+            a.setReminderSent(true);
+            appointmentRepository.save(a);
         }
     }
 }

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getAllAppointments, getMasterAppointments, getMyAppointments } from '../api/appointments'
 import { getAllSubscriptions, getMyActiveSubscriptions } from '../api/subscriptions'
 import { getAuth, isAdmin } from '../store/auth'
+import TelegramConnect from '../components/TelegramConnect'
 import type { Appointment, Subscription } from '../types'
 import { formatDateTime, statusBadge, statusLabel } from '../utils/format'
 
@@ -41,6 +42,8 @@ export default function DashboardPage() {
         <h1 className="page-title">Привет, {user?.name}!</h1>
         <Link to="/appointments/new" className="btn btn-primary">+ Новая запись</Link>
       </div>
+
+      <TelegramConnect />
 
       {/* Stats */}
       <div className="stat-grid">

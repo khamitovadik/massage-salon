@@ -8,6 +8,8 @@ interface UserItem {
   name: string
   email: string
   phone: string
+  phoneVerified?: boolean
+  telegramLinked?: boolean
   role: Role
   active: boolean
 }
@@ -84,7 +86,7 @@ export default function UsersPage() {
                   {!u.active && <span style={{ marginLeft: 8, fontSize: 12, color: 'var(--text-muted)' }}>(деактивирован)</span>}
                 </td>
                 <td style={{ padding: '12px 16px', fontSize: 14, color: 'var(--text-muted)' }}>{u.email}</td>
-                <td style={{ padding: '12px 16px', fontSize: 14, color: 'var(--text-muted)' }}>{u.phone || '—'}</td>
+                <td style={{ padding: '12px 16px', fontSize: 14, color: 'var(--text-muted)' }}>{u.phone || '—'}{u.phoneVerified && <span title="Номер подтверждён в Telegram" style={{ color: 'var(--success)', marginLeft: 6 }}>✓</span>}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <select
                     value={u.role}

@@ -23,6 +23,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserService userService;
+    private final com.salon.service.TelegramLinkService telegramLinkService;
     private final EmployeeRepository employeeRepository;
 
     /**
@@ -40,33 +41,27 @@ public class UserController {
             "email", user.getEmail(),
             "phone", user.getPhone() != null ? user.getPhone() : "",
             "role", user.getRole(),
-            "telegramChatId", user.getTelegramChatId() != null ? user.getTelegramChatId().toString() : ""
+            "telegramLinked", user.getTelegramChatId() != null,
+            "phoneVerified", user.isPhoneVerified()
         ));
     }
 
     /**
-     * Сохранить Telegram chat ID текущего пользователя.
-     * PATCH /api/users/me/telegram
-     * Body: {"chatId": "123456789"}
+     * Ссылка на бота с одноразовым кодом: открыл — Telegram привязан, поделился номером — номер подтверждён.
+     * POST /api/users/me/telegram-link → {"url": "https://t.me/бот?start=код"}
      */
-    @PatchMapping("/me/telegram")
-    public ResponseEntity<Map<String, String>> saveTelegramChatId(
-            @RequestBody Map<String, String> body,
-            Authentication auth) {
-
-        String chatId = body.get("chatId");
-        if (chatId == null || chatId.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "chatId обязателен"));
-        }
-
-        User user = userRepository.findByEmail(auth.getName())
-            .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
-
-        user.setTelegramChatId(Long.parseLong(chatId.trim()));
-        userRepository.save(user);
-
-        return ResponseEntity.ok(Map.of("message", "Telegram привязан успешно", "chatId", chatId));
+    @PostMapping("/me/telegram-link")
+    public ResponseEntity<Map<String, String>> telegramLink(Authentication auth) {
+        return ResponseEntity.ok(telegramLinkService.createLink(auth.getName()));
     }
+
+    /** Отключить Telegram. DELETE /api/users/me/telegram */
+    @DeleteMapping("/me/telegram")
+    public ResponseEntity<Void> unlinkTelegram(Authentication auth) {
+        telegramLinkService.unlink(auth.getName());
+        return ResponseEntity.noContent().build();
+    }
+
 
     /**
      * Список клиентов — для записи клиента и выдачи абонемента персоналом.
@@ -101,7 +96,9 @@ public class UserController {
                 "email", u.getEmail() != null ? u.getEmail() : "",
                 "phone", u.getPhone() != null ? u.getPhone() : "",
                 "role", u.getRole() != null ? u.getRole().name() : Role.CLIENT.name(),
-                "active", u.isActive()
+                "active", u.isActive(),
+                "phoneVerified", u.isPhoneVerified(),
+                "telegramLinked", u.getTelegramChatId() != null
             ))
             .collect(Collectors.toList());
         return ResponseEntity.ok(users);
